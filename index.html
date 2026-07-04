@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Finanzas</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Esto es lo que hace que Safari en iOS trate la web como una "app": icono propio,
+       sin barra de direcciones al abrirla desde la pantalla de inicio, y color de fondo. -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Finanzas">
+  <meta name="theme-color" content="#121212">
+</head>
+<body>
+
+  <header class="app-header">
+    <h1>Mis Finanzas</h1>
+  </header>
+
+  <!-- Botones para cambiar de pestaña (ver cambiarPestana() en app.js) -->
+  <nav class="tabs">
+    <button class="tab-button active" id="btn-registrar">Registrar</button>
+    <button class="tab-button" id="btn-estadisticas">Estadísticas</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ===================== PESTAÑA 1: REGISTRAR ===================== -->
+    <section class="tab-content active" id="tab-registrar">
+
+      <div class="card">
+        <label for="selector-mes">Mes</label>
+        <select id="selector-mes"></select>
+      </div>
+
+      <div class="card">
+        <h2>Añadir movimiento</h2>
+        <form id="form-movimiento">
+          <label for="tipo">Tipo</label>
+          <select id="tipo">
+            <option value="gasto">Gasto</option>
+            <option value="ingreso">Ingreso</option>
+            <option value="suscripcion">Suscripción</option>
+          </select>
+
+          <label for="categoria">Categoría</label>
+          <select id="categoria"></select>
+
+          <label for="nombre">Nombre</label>
+          <input type="text" id="nombre" placeholder="Ej: Cena con amigos">
+
+          <label for="importe">Importe (€)</label>
+          <input type="number" id="importe" placeholder="0.00" step="0.01" min="0">
+
+          <div class="form-group" id="grupo-fecha">
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha" required>
+          </div>
+
+          <label class="checkbox-label" id="grupo-extraordinario">
+            <input type="checkbox" id="extraordinario">
+            Es un gasto extraordinario
+          </label>
+
+          <button type="submit" class="btn-primary" id="btn-submit-movimiento">Añadir</button>
+          <button type="button" class="btn-secondary hidden" id="btn-cancelar-edicion">Cancelar edición</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Categorías</h2>
+        <div class="add-category">
+          <input type="text" id="nueva-categoria" placeholder="Nueva categoría">
+          <button type="button" class="btn-secondary" id="btn-add-categoria">Añadir</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Suscripciones</h2>
+        <ul class="movement-list" id="subscription-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Movimientos de este mes</h2>
+        <p class="hint-text">Las suscripciones activas se suman solas cada mes; gestiónalas en la tarjeta de arriba.</p>
+        <ul class="movement-list" id="movement-list"></ul>
+      </div>
+
+      <div class="card">
+        <h2>Límite mensual</h2>
+        <label for="limite">Límite (€)</label>
+        <input type="number" id="limite" placeholder="1000" step="0.01" min="0">
+      </div>
+
+      <div class="card">
+        <h2>Copia de seguridad</h2>
+        <p class="hint-text">Tus datos solo viven en este navegador. Exporta un archivo de vez en cuando por si acaso.</p>
+        <div class="backup-actions">
+          <button type="button" class="btn-secondary" id="btn-exportar">Exportar datos</button>
+          <button type="button" class="btn-secondary" id="btn-importar">Importar datos</button>
+        </div>
+        <input type="file" id="input-importar" accept="application/json" class="hidden">
+      </div>
+
+    </section>
+
+    <!-- ===================== PESTAÑA 2: ESTADÍSTICAS ===================== -->
+    <section class="tab-content" id="tab-estadisticas">
+
+      <div class="card">
+        <label for="selector-mes-stats">Mes</label>
+        <select id="selector-mes-stats"></select>
+      </div>
+
+      <div class="card chart-placeholder">
+        <h2>Gastos por categoría</h2>
+        <div class="chart-box">
+          <canvas id="grafico-categorias"></canvas>
+          <p class="chart-empty-message hidden" id="stats-sin-datos">No hay gastos registrados este mes.</p>
+        </div>
+      </div>
+
+      <div class="card summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Ingresos</span>
+          <span class="summary-value income" id="stats-ingresos">0.00 €</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Gastos</span>
+          <span class="summary-value expense" id="stats-gastos">0.00 €</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Ahorro</span>
+          <span class="summary-value income" id="stats-ahorro">0.00 €</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Límite mensual</h2>
+        <div class="limit-bar">
+          <div class="limit-bar-fill" id="limit-bar-fill" style="width: 0%;"></div>
+        </div>
+        <span class="limit-text" id="limit-text">0.00 € de 0.00 €</span>
+      </div>
+
+      <div class="card">
+        <h2>Ahorro acumulado</h2>
+        <p class="big-number income" id="stats-ahorro-acumulado">0.00 €</p>
+        <p class="hint-text hidden" id="stats-extra-mes"></p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

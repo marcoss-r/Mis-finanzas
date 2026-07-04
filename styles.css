@@ -1,0 +1,367 @@
+/* ===== Variables de color: las definimos una vez y las reutilizamos en todo el archivo ===== */
+:root {
+  --bg: #121212;
+  --bg-card: #1e1e1e;
+  --text: #ffffff;
+  --text-secondary: #b0b0b0;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fbbf24;
+  --border-radius: 10px;
+}
+
+/* ===== Reset básico: quitamos márgenes por defecto del navegador ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.app-header {
+  padding: 20px;
+  text-align: center;
+}
+
+.app-header h1 {
+  font-weight: 700;
+}
+
+/* ===== Pestañas ===== */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px 16px;
+}
+
+.tab-button {
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 24px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background-color: var(--green);
+  color: #121212;
+}
+
+/* ===== Contenedor principal ===== */
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 40px;
+}
+
+/* Ocultamos la pestaña que no está activa. Sin JS, esto es fijo por ahora */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* ===== Tarjetas: bloque reutilizable para cada sección ===== */
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ===== Formularios ===== */
+label {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+label:first-child {
+  margin-top: 0;
+}
+
+select,
+input[type="text"],
+input[type="number"],
+input[type="date"] {
+  width: 100%;
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  margin-top: 14px;
+}
+
+.checkbox-label input {
+  width: auto;
+}
+
+.btn-primary,
+.btn-secondary {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  width: 100%;
+  background-color: var(--green);
+  color: #121212;
+  margin-top: 16px;
+}
+
+.btn-secondary {
+  background-color: #333;
+  color: var(--text);
+}
+
+.add-category {
+  display: flex;
+  gap: 8px;
+}
+
+.add-category input {
+  flex: 1;
+}
+
+.backup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.backup-actions button {
+  flex: 1;
+}
+
+/* ===== Lista de movimientos ===== */
+.movement-list {
+  list-style: none;
+}
+
+.movement-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.movement-item:last-child {
+  border-bottom: none;
+}
+
+.movement-item--subscription {
+  border-left: 3px solid var(--orange);
+  padding-left: 8px;
+}
+
+.hint-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.movement-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.movement-category {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0 12px;
+}
+
+.movement-amount.expense {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.movement-amount.income {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ===== Menú de opciones (editar / eliminar) de cada movimiento ===== */
+.movement-menu {
+  position: relative;
+  margin-left: 8px;
+}
+
+.movement-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.movement-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 130px;
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.movement-menu-dropdown button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.movement-menu-dropdown button:hover {
+  background-color: #3a3a3a;
+}
+
+#btn-cancelar-edicion {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ===== Estadísticas ===== */
+.chart-box {
+  position: relative;
+  height: 220px;
+}
+
+.chart-empty-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.chart-empty-message.hidden {
+  display: none;
+}
+
+.summary-grid {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.summary-value {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.summary-value.income {
+  color: var(--green);
+}
+
+.summary-value.expense {
+  color: var(--red);
+}
+
+.limit-bar {
+  height: 12px;
+  background-color: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.limit-bar-fill {
+  height: 100%;
+  background-color: var(--green);
+  transition: width 0.2s ease;
+}
+
+.limit-bar-fill.limit-warning {
+  background-color: var(--orange);
+}
+
+.limit-bar-fill.limit-over {
+  background-color: var(--red);
+}
+
+.limit-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.big-number {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.big-number.income {
+  color: var(--green);
+}
+
+.big-number.expense {
+  color: var(--red);
+}
