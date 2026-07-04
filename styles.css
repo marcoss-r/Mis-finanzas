@@ -107,6 +107,17 @@ form > label:first-child {
   margin-top: 0;
 }
 
+/* El campo Fecha va envuelto en su propio .form-group. El margin-top del label
+   interno se colapsa con el div y no separa igual que los labels sueltos, así que
+   ponemos la separación en el propio contenedor y anulamos la del label dentro. */
+.form-group {
+  margin-top: 12px;
+}
+
+.form-group > label {
+  margin-top: 0;
+}
+
 select,
 input[type="text"],
 input[type="number"],
