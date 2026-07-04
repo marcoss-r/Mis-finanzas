@@ -99,7 +99,11 @@ label {
   margin-top: 12px;
 }
 
-label:first-child {
+/* Solo el primer label del formulario (Tipo) va sin margen superior.
+   Antes usábamos label:first-child, pero eso también anulaba el margen del
+   label "Fecha" por estar envuelto en su propio div .form-group, dejándolo
+   pegado a la caja de Importe. Con > label:first-child solo afecta al de arriba. */
+form > label:first-child {
   margin-top: 0;
 }
 
