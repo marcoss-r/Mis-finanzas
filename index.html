@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Política de seguridad de contenido (CSP): le dice al navegador qué se puede cargar
+       y qué no. Es la red de seguridad por si algo se colara:
+       - default-src 'self'      → por defecto, solo archivos de esta misma app.
+       - script-src 'self'       → SOLO se ejecuta JS de aquí (chart.umd.min.js y app.js).
+                                    Bloquea cualquier script externo o inyectado.
+       - connect-src 'none'      → NADA puede enviar datos a internet (ni fetch, ni beacons).
+                                    Aunque un script malicioso leyera tu localStorage,
+                                    no tendría por dónde sacarlo del dispositivo.
+       - object-src 'none' / base-uri 'self' / form-action 'none' → cierran otras vías. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+
   <title>Mis Finanzas</title>
   <link rel="stylesheet" href="styles.css">
 
@@ -158,7 +171,8 @@
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js v4.4.6 guardado en local (no se carga de ningún servidor externo) -->
+  <script src="chart.umd.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
