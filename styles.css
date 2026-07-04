@@ -118,6 +118,17 @@ input[type="date"] {
   font-weight: 500;
 }
 
+/* Safari en iOS dibuja el <input type="date"> con su propio ancho mínimo interno
+   (los huecos día/mes/año) y lo ignora si es mayor que el 100% del contenedor,
+   saliéndose del recuadro; en escritorio no pasa porque ese ancho mínimo es menor.
+   Quitarle el estilo nativo con appearance:none hace que respete el width normal
+   (el selector de fecha al tocar sigue abriéndose igual). */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+}
+
 .checkbox-label {
   display: flex;
   align-items: center;
