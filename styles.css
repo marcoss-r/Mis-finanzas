@@ -153,6 +153,43 @@ input[type="date"] {
   color: var(--text);
 }
 
+.category-list {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.category-list:empty {
+  margin-bottom: 0;
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #333;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 8px 6px 14px;
+  font-size: 14px;
+}
+
+.category-chip button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+}
+
+.category-chip button:hover {
+  color: var(--red);
+}
+
 .add-category {
   display: flex;
   gap: 8px;

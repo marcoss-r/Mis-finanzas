@@ -12,6 +12,7 @@ const lista = document.getElementById('movement-list');
 const selectCategoria = document.getElementById('categoria');
 const inputNuevaCategoria = document.getElementById('nueva-categoria');
 const btnAddCategoria = document.getElementById('btn-add-categoria');
+const listaCategorias = document.getElementById('lista-categorias');
 const selectorMes = document.getElementById('selector-mes');
 const btnSubmitMovimiento = document.getElementById('btn-submit-movimiento');
 const btnCancelarEdicion = document.getElementById('btn-cancelar-edicion');
@@ -192,8 +193,8 @@ inputLimite.addEventListener('change', () => {
   guardarLimiteMensual(limiteMensual);
 });
 
-// Repinta las <option> del desplegable de categorías a partir del array `categorias`.
-// Mismo patrón "vaciar y repintar" que usamos en renderMovimientos.
+// Repinta las <option> del desplegable de categorías y los chips con botón de eliminar,
+// ambos a partir del array `categorias`. Mismo patrón "vaciar y repintar" que en renderMovimientos.
 function renderCategorias() {
   selectCategoria.innerHTML = '';
   categorias.forEach((cat) => {
@@ -201,6 +202,24 @@ function renderCategorias() {
     option.value = cat;
     option.textContent = cat;
     selectCategoria.appendChild(option);
+  });
+
+  listaCategorias.innerHTML = '';
+  categorias.forEach((cat) => {
+    const chip = document.createElement('li');
+    chip.className = 'category-chip';
+
+    const nombre = document.createElement('span');
+    nombre.textContent = cat;
+
+    const btnEliminar = document.createElement('button');
+    btnEliminar.type = 'button';
+    btnEliminar.textContent = '×';
+    btnEliminar.setAttribute('aria-label', `Eliminar categoría ${cat}`);
+    btnEliminar.addEventListener('click', () => eliminarCategoria(cat));
+
+    chip.append(nombre, btnEliminar);
+    listaCategorias.appendChild(chip);
   });
 }
 
@@ -221,6 +240,39 @@ btnAddCategoria.addEventListener('click', () => {
   renderCategorias();
   inputNuevaCategoria.value = '';
 });
+
+// Elimina una categoría de la lista. Los movimientos y suscripciones que ya la usaban
+// NO se tocan (guardan el nombre como texto suelto, no una referencia), así que conservan
+// su categoría aunque desaparezca de la lista de futuras opciones; por eso avisamos antes
+// de borrar si hay algo que la está usando.
+function eliminarCategoria(nombre) {
+  if (categorias.length === 1) {
+    alert('No puedes eliminar la única categoría que tienes. Añade otra antes de borrar esta.');
+    return;
+  }
+
+  const usosEnMovimientos = movimientos.filter((mov) => mov.categoria === nombre).length;
+  const usosEnSuscripciones = suscripciones.filter((sus) => sus.categoria === nombre).length;
+  const usos = usosEnMovimientos + usosEnSuscripciones;
+
+  const mensaje = usos > 0
+    ? `"${nombre}" se usa en ${usos} movimiento(s)/suscripción(es). Seguirán existiendo con esa categoría, pero ya no podrás elegirla para nuevos movimientos. ¿Eliminarla igualmente?`
+    : `¿Eliminar la categoría "${nombre}"?`;
+
+  if (!confirm(mensaje)) return;
+
+  categorias = categorias.filter((cat) => cat !== nombre);
+  guardarCategorias(categorias);
+  renderCategorias();
+
+  if (usos > 0) {
+    renderMovimientos();
+    renderSuscripciones();
+    if (tabEstadisticas.classList.contains('active')) {
+      renderEstadisticas();
+    }
+  }
+}
 
 // Igual que con movimientos y categorías, pero para las suscripciones.
 function cargarSuscripciones() {
