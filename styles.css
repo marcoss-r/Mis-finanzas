@@ -171,6 +171,8 @@ input[type="date"] {
 
 .btn-primary,
 .btn-secondary {
+  -webkit-appearance: none;
+  appearance: none;
   font-family: inherit;
   font-weight: 600;
   font-size: 15px;
@@ -534,6 +536,7 @@ input[type="date"] {
 
 .action-row button {
   flex: 1;
+  min-width: 0;
   width: auto;
   margin-top: 0;
 }
@@ -544,7 +547,7 @@ input[type="date"] {
 }
 
 .division-item .action-row {
-  margin-top: 16px;
+  margin-top: 26px;
 }
 
 .division-item:last-child {
