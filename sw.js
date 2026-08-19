@@ -2,7 +2,7 @@
 // y cargarla al instante. CACHE_VERSION es el control de versión de caché: súbela cada vez
 // que cambies algún archivo listado aquí abajo para que los usuarios reciban la versión nueva
 // en vez de quedarse con la cacheada.
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `mis-finanzas-${CACHE_VERSION}`;
 
 const ARCHIVOS_PRECACHE = [
