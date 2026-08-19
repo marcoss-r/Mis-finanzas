@@ -443,71 +443,73 @@ En la fase 11 se valorará añadir un **service worker** para que la app funcion
 
 Cada fase deja la app **funcionando**. Nada de "está a medias hasta la fase 9".
 
-### Fase 0 — Preparar el terreno
-- [ ] Pantalla de bienvenida con **exportar los datos de la v1** antes de empezar de cero.
-- [ ] Nuevo `storage.js` con clave única versionada y borrado limpio de las claves antiguas.
-- [ ] Mover `chart.umd.min.js` a `vendor/` y pasar `index.html` a `type="module"`.
-- [ ] `README.md` con el comando para levantar el servidor local (`python3 -m http.server 8000`).
+### Fase 0 — Preparar el terreno ✅
+- [x] Pantalla de bienvenida con **exportar los datos de la v1** antes de empezar de cero.
+- [x] Nuevo `storage.js` con clave única versionada y borrado limpio de las claves antiguas.
+- [x] Mover `chart.umd.min.js` a `vendor/` y pasar `index.html` a `type="module"`.
+- [x] `README.md` con el comando para levantar el servidor local (`python3 -m http.server 8000`).
 
-### Fase 1 — Cuentas
-- [ ] Modelo de cuentas y cálculo de saldo.
-- [ ] Pestaña Cuentas: crear, editar, archivar; corriente vs ahorro con TAE.
-- [ ] Ajuste manual de saldo mediante movimiento de ajuste.
+### Fase 1 — Cuentas ✅
+- [x] Modelo de cuentas y cálculo de saldo.
+- [x] Pestaña Cuentas: crear, editar, archivar; corriente vs ahorro con TAE.
+- [x] Ajuste manual de saldo mediante movimiento de ajuste.
 
-### Fase 2 — Traspasos
-- [ ] Modelo de traspaso y botón ⇄.
-- [ ] Traspaso entre cuentas, con validación de saldo.
+### Fase 2 — Traspasos ✅
+- [x] Modelo de traspaso y botón ⇄.
+- [x] Traspaso entre cuentas, con validación de saldo.
 
-### Fase 3 — Divisiones
-- [ ] Modelo de divisiones + cálculo de "Sin asignar".
-- [ ] Detalle de cuenta con sus divisiones y saldos.
-- [ ] Reparto inicial por porcentajes.
-- [ ] Traspasos entre divisiones y desde/hacia "Sin asignar".
-- [ ] Objetivos con barra de progreso y "cuánto me falta al mes" si hay fecha meta.
+### Fase 3 — Divisiones ✅
+- [x] Modelo de divisiones + cálculo de "Sin asignar".
+- [x] Detalle de cuenta con sus divisiones y saldos.
+- [x] Reparto inicial por porcentajes.
+- [x] Traspasos entre divisiones y desde/hacia "Sin asignar".
+- [x] Objetivos con barra de progreso y "cuánto me falta al mes" si hay fecha meta.
 
-### Fase 4 — Movimientos sobre el nuevo modelo
-- [ ] Formulario con cuenta + división.
-- [ ] Los gastos descuentan del total y de la división.
-- [ ] Suscripciones con cuenta/división y día de cobro.
-- [ ] Reescribir la pestaña Movimientos.
+### Fase 4 — Movimientos sobre el nuevo modelo ✅
+- [x] Formulario con cuenta + división.
+- [x] Los gastos descuentan del total y de la división.
+- [x] Suscripciones con cuenta/división y día de cobro.
+- [x] Reescribir la pestaña Movimientos.
 
-### Fase 5 — Presupuestos
-- [ ] Modelo de presupuesto por categoría y mes.
-- [ ] Barras de progreso y avisos al pasarse.
-- [ ] Retirada del "límite mensual global" de la v1, sustituido por esto.
+### Fase 5 — Presupuestos ✅
+- [x] Modelo de presupuesto por categoría y mes.
+- [x] Barras de progreso y avisos al pasarse.
+- [x] Retirada del "límite mensual global" de la v1, sustituido por esto.
 
-### Fase 6 — Interés de las cuentas de ahorro
-- [ ] Abono mensual `saldo × TAE/12` como movimiento con `origen: "interes"`.
-- [ ] Idempotencia: que no se abone dos veces el mismo mes aunque abras la app diez veces.
+### Fase 6 — Interés de las cuentas de ahorro ✅
+- [x] Abono mensual `saldo × TAE/12` como movimiento con `origen: "interes"`.
+- [x] Idempotencia: que no se abone dos veces el mismo mes aunque abras la app diez veces.
 
-### Fase 7 — Motor fiscal
-- [ ] `tablas.js` con tramos de retención, escala autonómica de Madrid, tipos de SS, bases y mínimos personales.
-- [ ] `seguridadSocial.js` con topes de base.
-- [ ] `irpf.js`: rendimiento neto, mínimo personal y familiar, escala, tipo de retención.
-- [ ] `retribucionFlexible.js` con los límites de exención y el tope del 30%.
-- [ ] Pantalla de tablas editables en Ajustes.
+### Fase 7 — Motor fiscal ✅ (salvo la pantalla de tablas editables)
+- [x] `tablas.js` con tramos de retención, escala autonómica de Madrid, tipos de SS, bases y mínimos personales.
+- [x] `seguridadSocial.js` con topes de base.
+- [x] `irpf.js`: rendimiento neto, mínimo personal y familiar, escala, tipo de retención.
+- [x] `retribucionFlexible.js` con los límites de exención y el tope del 30%.
+- [ ] Pantalla de tablas editables en Ajustes (por ahora se editan cambiando `state.ajustes.tablasFiscales` a mano; no hay UI todavía).
 
-### Fase 8 — Gestor de salario
-- [ ] Configuración: bruto, jornada, pagas 12/14, día de cobro, contrato.
-- [ ] Circunstancias personales.
-- [ ] Desglose bruto → neto con los tramos a la vista.
-- [ ] Estimación anual Madrid (a devolver / a pagar).
+### Fase 8 — Gestor de salario ✅
+- [x] Configuración: bruto, jornada, pagas 12/14, día de cobro, contrato.
+- [x] Circunstancias personales.
+- [x] Desglose bruto → neto con los tramos a la vista.
+- [x] Estimación anual Madrid (a devolver / a pagar).
 
-### Fase 9 — Reparto y generación de nóminas
-- [ ] Reparto por porcentajes hacia cuentas y divisiones, editable por mes.
-- [ ] Herencia del reparto del mes anterior.
-- [ ] Generación automática el día de cobro, con ajuste a día hábil (festivos de Madrid incluidos).
-- [ ] Historial de nóminas, edición manual del importe real.
+### Fase 9 — Reparto y generación de nóminas ✅
+- [x] Reparto por porcentajes hacia cuentas y divisiones, editable por mes.
+- [x] Herencia del reparto del mes anterior.
+- [x] Generación automática el día de cobro, con ajuste a día hábil (festivos de Madrid incluidos).
+- [x] Historial de nóminas. *(Falta el editor manual del importe real sobre una nómina ya generada; hoy solo se puede editar/eliminar el movimiento que generó.)*
 
-### Fase 10 — Inicio y estadísticas
-- [ ] Pestaña Inicio con patrimonio, objetivos y próxima nómina.
-- [ ] Gastos por división y evolución del patrimonio.
+### Fase 10 — Inicio y estadísticas ✅
+- [x] Pestaña Inicio con patrimonio, objetivos y próxima nómina.
+- [x] Gastos por división y evolución del patrimonio.
 
-### Fase 11 — Pulido
-- [ ] Navegación inferior de 5 pestañas, cómoda a una mano en iPhone.
-- [ ] Exportar/importar adaptado al nuevo formato.
+### Fase 11 — Pulido (parcial)
+- [x] Navegación inferior de 5 pestañas, cómoda a una mano en iPhone.
+- [x] Exportar/importar adaptado al nuevo formato.
 - [ ] Repaso de accesibilidad y de la CSP.
 - [ ] Service worker para uso sin conexión y carga instantánea (con control de versión de caché).
+
+**Estado actual: la app v2 está funcionando de punta a punta** (cuentas, traspasos, divisiones con objetivos, movimientos, suscripciones, presupuestos, interés, motor fiscal, gestor de salario con generación automática de nóminas, inicio y estadísticas), probada con Playwright sin errores de consola. Quedan pendientes, como pulido final: la pantalla de tablas fiscales editables, el editor manual de una nómina ya confirmada, el repaso de accesibilidad y el service worker.
 
 ---
 
