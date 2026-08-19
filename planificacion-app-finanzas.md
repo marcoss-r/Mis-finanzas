@@ -24,7 +24,7 @@ Sigue siendo una web en euros, oscura, que se abre en el móvil como una app y g
 
 | Tema | Decisión |
 |---|---|
-| Tecnología | **Vanilla JS con módulos ES**, sin build ni npm |
+| Tecnología | **Vanilla JS con módulos ES**, sin build ni npm; la app se sirve por HTTP |
 | Divisiones | **Particionan el saldo**; el resto se ve como "Sin asignar" |
 | Modelo de ahorro | **Los saldos de cuenta mandan**; desaparece la "hucha" calculada |
 | Interés de cuentas de ahorro | **TAE anual, abono mensual** (`saldo × TAE/12`) |
@@ -409,9 +409,33 @@ Mis-finanzas/
         └── id.js
 ```
 
-> ⚠️ **Nota técnica:** los módulos ES (`import`/`export`) **no funcionan abriendo `index.html` con doble clic** (protocolo `file://`); el navegador los bloquea por seguridad. Como la app ya se usa servida (la PWA se instala desde una URL), no es problema. Para probar en local basta con `python3 -m http.server` en la carpeta y abrir `http://localhost:8000`. Si en algún momento necesitas el doble clic, se puede volver a scripts clásicos con varias etiquetas `<script>` en orden.
+### 6.1. La app se sirve por HTTP (decisión cerrada)
+
+Los módulos ES (`import`/`export`) no funcionan abriendo `index.html` con doble clic: el protocolo `file://` los bloquea por seguridad del navegador. **La app pasa a usarse siempre servida**, que es como ya la usas en el móvil: una PWA solo se puede instalar desde una URL, nunca desde un archivo local. Así que esto no cambia nada de tu uso real.
+
+Lo único que cambia es **cómo pruebas en el ordenador**: en vez de doble clic, levantas un servidor de un comando en la carpeta del proyecto.
+
+```bash
+python3 -m http.server 8000
+# y abres http://localhost:8000
+```
+
+No instala nada: `python3` ya viene en macOS y Linux. Sigue sin haber npm, ni compilación, ni `node_modules`.
+
+**Por qué merece la pena** frente a seguir con varias etiquetas `<script>` clásicas:
+
+- Cada archivo declara **qué necesita** (`import`) y **qué ofrece** (`export`). Al leerlo sabes de dónde sale cada función, en vez de buscar una variable global por todo el proyecto.
+- **No hay orden frágil**: con scripts clásicos, cambiar el orden de las etiquetas en `index.html` rompe la app en silencio. Con módulos, el navegador resuelve el orden solo.
+- Cada módulo tiene su **ámbito propio**: dos archivos pueden usar `formatear()` sin pisarse.
+- Es lo que hace hoy cualquier proyecto real, así que lo que aprendas aquí te sirve fuera.
+
+### 6.2. La PWA se mantiene intacta
+
+`manifest.json`, los iconos y las metaetiquetas de Safari no se tocan. La app se seguirá instalando en la pantalla de inicio del iPhone exactamente igual.
 
 La **CSP se mantiene igual de estricta**: nada de red (`connect-src 'none'`), solo scripts propios. Los datos siguen sin salir del dispositivo.
+
+En la fase 11 se valorará añadir un **service worker** para que la app funcione sin conexión y cargue al instante. Se deja para el final a propósito: un service worker cachea los archivos y, mientras estás desarrollando, hace que el móvil te siga enseñando la versión antigua después de cada cambio. Es mejor añadirlo cuando el código ya esté estable.
 
 ---
 
@@ -423,6 +447,7 @@ Cada fase deja la app **funcionando**. Nada de "está a medias hasta la fase 9".
 - [ ] Pantalla de bienvenida con **exportar los datos de la v1** antes de empezar de cero.
 - [ ] Nuevo `storage.js` con clave única versionada y borrado limpio de las claves antiguas.
 - [ ] Mover `chart.umd.min.js` a `vendor/` y pasar `index.html` a `type="module"`.
+- [ ] `README.md` con el comando para levantar el servidor local (`python3 -m http.server 8000`).
 
 ### Fase 1 — Cuentas
 - [ ] Modelo de cuentas y cálculo de saldo.
@@ -482,6 +507,7 @@ Cada fase deja la app **funcionando**. Nada de "está a medias hasta la fase 9".
 - [ ] Navegación inferior de 5 pestañas, cómoda a una mano en iPhone.
 - [ ] Exportar/importar adaptado al nuevo formato.
 - [ ] Repaso de accesibilidad y de la CSP.
+- [ ] Service worker para uso sin conexión y carga instantánea (con control de versión de caché).
 
 ---
 
