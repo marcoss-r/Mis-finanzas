@@ -3,8 +3,9 @@ import { euros, porcentaje } from './formato.js';
 import { update } from '../store/state.js';
 import { cuentasActivas } from '../domain/cuentas.js';
 import { divisionesDeCuenta } from '../domain/divisiones.js';
-import { calcularNomina, repartoDelMes, guardarReparto, fechaDeCobro, generarNominasPendientes } from '../domain/salario.js';
+import { calcularNomina, repartoDelMes, guardarReparto, fechaDeCobro, generarNominasPendientes, editarNetoNomina } from '../domain/salario.js';
 import { mesActual, formatearMes } from '../util/fechas.js';
+import { abrirAjustesFiscales } from './ajustesView.js';
 
 export function renderSalario(contenedor, state) {
   if (!state.salario) {
@@ -13,6 +14,7 @@ export function renderSalario(contenedor, state) {
         el('h2', { text: 'Gestor de salario' }),
         el('p', { class: 'hint-text', text: 'Configura tu salario bruto anual y la app calculará el neto mensual (IRPF + Seguridad Social, Madrid) y lo repartirá entre tus cuentas cada mes.' }),
         el('button', { type: 'button', class: 'btn-primary', text: 'Configurar salario', onClick: () => abrirFormularioConfiguracion(state) }),
+        el('button', { type: 'button', class: 'btn-secondary', text: 'Tablas fiscales (avanzado)', onClick: () => abrirAjustesFiscales(state) }),
       ]),
     );
     return;
@@ -25,7 +27,10 @@ export function renderSalario(contenedor, state) {
     tarjeta([
       el('h2', { text: 'Configuración' }),
       el('p', { text: `Bruto anual: ${euros(state.salario.brutoAnual)} · ${state.salario.horasSemana}h/semana · ${state.salario.numeroPagas} pagas · cobro el día ${state.salario.diaCobro}` }),
-      el('button', { type: 'button', class: 'btn-secondary', text: 'Editar configuración', onClick: () => abrirFormularioConfiguracion(state) }),
+      el('div', { class: 'action-row' }, [
+        el('button', { type: 'button', class: 'btn-secondary', text: 'Editar configuración', onClick: () => abrirFormularioConfiguracion(state) }),
+        el('button', { type: 'button', class: 'btn-secondary', text: 'Tablas fiscales', onClick: () => abrirAjustesFiscales(state) }),
+      ]),
     ]),
   );
 
@@ -66,10 +71,29 @@ export function renderSalario(contenedor, state) {
             el('span', { class: 'movement-name', text: formatearMes(n.mes) }),
             el('span', { class: 'movement-category', text: n.editadaManualmente ? 'Editada' : 'Automática' }),
             el('span', { class: 'movement-amount income', text: euros(n.neto) }),
+            el('button', { type: 'button', class: 'btn-secondary', text: 'Editar', onClick: () => abrirFormularioEditarNomina(n) }),
           ])))
         : el('p', { class: 'empty-state', text: 'Todavía no se ha generado ninguna nómina.' }),
     ]),
   );
+}
+
+function abrirFormularioEditarNomina(nomina) {
+  const neto = el('input', { type: 'number', step: '0.01', min: '0', value: nomina.neto });
+  const form = el('form', {
+    onSubmit: (e) => {
+      e.preventDefault();
+      const valor = parseFloat(neto.value);
+      if (!(valor >= 0)) return;
+      update((s) => editarNetoNomina(s, nomina.mes, valor));
+      cerrarModal();
+    },
+  }, [
+    el('p', { class: 'hint-text', text: `Nómina calculada: ${euros(nomina.neto)}. Si tu nómina real fue distinta, escribe el importe real: se ajustarán proporcionalmente los ingresos ya generados en tus cuentas.` }),
+    el('label', { text: 'Neto real (€)' }), neto,
+    el('button', { type: 'submit', class: 'btn-primary', text: 'Guardar' }),
+  ]);
+  abrirModal(`Editar nómina — ${formatearMes(nomina.mes)}`, form);
 }
 
 function filaDesglose(etiqueta, valor, total) {

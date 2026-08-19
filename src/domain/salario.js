@@ -133,8 +133,19 @@ export function generarNominasPendientes(state, hastaFecha = new Date()) {
   return generadas;
 }
 
-export function editarNomina(state, mes, cambios) {
+// Corrige el neto de una nómina ya generada (p. ej. porque difiere de la nómina real) y
+// reescala proporcionalmente los movimientos de tipo "Nómina" que generó, sin tocar el
+// de retribución flexible.
+export function editarNetoNomina(state, mes, nuevoNeto) {
   const nomina = state.nominas.find((n) => n.mes === mes);
   if (!nomina) return;
-  Object.assign(nomina, cambios, { editadaManualmente: true });
+  const factor = nomina.neto > 0 ? nuevoNeto / nomina.neto : 0;
+  nomina.movimientosGenerados.forEach((id) => {
+    const mov = state.movimientos.find((m) => m.id === id);
+    if (mov && mov.categoria === 'Nómina') {
+      mov.importe = Math.round(mov.importe * factor * 100) / 100;
+    }
+  });
+  nomina.neto = Math.round(Number(nuevoNeto) * 100) / 100;
+  nomina.editadaManualmente = true;
 }

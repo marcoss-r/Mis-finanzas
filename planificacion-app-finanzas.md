@@ -480,12 +480,12 @@ Cada fase deja la app **funcionando**. Nada de "está a medias hasta la fase 9".
 - [x] Abono mensual `saldo × TAE/12` como movimiento con `origen: "interes"`.
 - [x] Idempotencia: que no se abone dos veces el mismo mes aunque abras la app diez veces.
 
-### Fase 7 — Motor fiscal ✅ (salvo la pantalla de tablas editables)
+### Fase 7 — Motor fiscal ✅
 - [x] `tablas.js` con tramos de retención, escala autonómica de Madrid, tipos de SS, bases y mínimos personales.
 - [x] `seguridadSocial.js` con topes de base.
 - [x] `irpf.js`: rendimiento neto, mínimo personal y familiar, escala, tipo de retención.
 - [x] `retribucionFlexible.js` con los límites de exención y el tope del 30%.
-- [ ] Pantalla de tablas editables en Ajustes (por ahora se editan cambiando `state.ajustes.tablasFiscales` a mano; no hay UI todavía).
+- [x] Pantalla de tablas editables en Ajustes (botón "Tablas fiscales" en la pestaña Salario: tipos de SS, las tres escalas por tramos, mínimos personales y límites de retribución flexible, con botón de restablecer a los valores de fábrica).
 
 ### Fase 8 — Gestor de salario ✅
 - [x] Configuración: bruto, jornada, pagas 12/14, día de cobro, contrato.
@@ -497,19 +497,19 @@ Cada fase deja la app **funcionando**. Nada de "está a medias hasta la fase 9".
 - [x] Reparto por porcentajes hacia cuentas y divisiones, editable por mes.
 - [x] Herencia del reparto del mes anterior.
 - [x] Generación automática el día de cobro, con ajuste a día hábil (festivos de Madrid incluidos).
-- [x] Historial de nóminas. *(Falta el editor manual del importe real sobre una nómina ya generada; hoy solo se puede editar/eliminar el movimiento que generó.)*
+- [x] Historial de nóminas, con edición manual del importe real: al corregir el neto se reescalan proporcionalmente los ingresos ya generados en las cuentas.
 
 ### Fase 10 — Inicio y estadísticas ✅
 - [x] Pestaña Inicio con patrimonio, objetivos y próxima nómina.
 - [x] Gastos por división y evolución del patrimonio.
 
-### Fase 11 — Pulido (parcial)
+### Fase 11 — Pulido ✅
 - [x] Navegación inferior de 5 pestañas, cómoda a una mano en iPhone.
 - [x] Exportar/importar adaptado al nuevo formato.
-- [ ] Repaso de accesibilidad y de la CSP.
-- [ ] Service worker para uso sin conexión y carga instantánea (con control de versión de caché).
+- [x] Repaso de accesibilidad y de la CSP: modales con `role="dialog"`, `aria-modal`, foco automático al primer campo, cierre con Escape y devolución del foco al cerrar; `aria-current="page"` en la pestaña activa; iconos decorativos con `aria-hidden`; CSP con `worker-src 'self'` explícito para el service worker.
+- [x] Service worker (`sw.js`) para uso sin conexión y carga instantánea, con `CACHE_VERSION` como control de versión de caché (documentado en el README) y limpieza de cachés antiguas al activarse.
 
-**Estado actual: la app v2 está funcionando de punta a punta** (cuentas, traspasos, divisiones con objetivos, movimientos, suscripciones, presupuestos, interés, motor fiscal, gestor de salario con generación automática de nóminas, inicio y estadísticas), probada con Playwright sin errores de consola. Quedan pendientes, como pulido final: la pantalla de tablas fiscales editables, el editor manual de una nómina ya confirmada, el repaso de accesibilidad y el service worker.
+**Estado actual: la app v2 está funcionando de punta a punta y las 11 fases están completas.** Cuentas, traspasos, divisiones con objetivos, movimientos, suscripciones, presupuestos, interés, motor fiscal con tablas editables, gestor de salario con generación automática de nóminas y edición manual del importe real, inicio, estadísticas, accesibilidad básica y uso sin conexión — todo probado con Playwright sin errores de consola, incluyendo una carga completa con la red desconectada.
 
 ---
 

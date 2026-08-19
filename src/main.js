@@ -58,7 +58,12 @@ const botones = document.querySelectorAll('.nav-button');
 function render() {
   contenedor.innerHTML = '';
   VISTAS[vistaActual](contenedor, getState());
-  botones.forEach((b) => b.classList.toggle('active', b.dataset.vista === vistaActual));
+  botones.forEach((b) => {
+    const activo = b.dataset.vista === vistaActual;
+    b.classList.toggle('active', activo);
+    if (activo) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
 }
 
 botones.forEach((btn) => {
@@ -75,3 +80,9 @@ update((state) => {
   abonarInteresesPendientes(state);
   generarNominasPendientes(state);
 });
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}

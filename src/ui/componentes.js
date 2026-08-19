@@ -29,13 +29,23 @@ export function barra(pct, extra = '') {
 }
 
 let overlayActual = null;
+let elementoConFocoPrevio = null;
+let idTituloModal = 0;
+
+function alPulsarTecla(e) {
+  if (e.key === 'Escape') cerrarModal();
+}
 
 export function abrirModal(titulo, contenido) {
   cerrarModal();
+  elementoConFocoPrevio = document.activeElement;
+  idTituloModal += 1;
+  const idTitulo = `modal-titulo-${idTituloModal}`;
+
   const overlay = el('div', { class: 'modal-overlay' });
-  const modal = el('div', { class: 'modal' }, [
+  const modal = el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': idTitulo }, [
     el('div', { class: 'modal-header' }, [
-      el('h2', { text: titulo }),
+      el('h2', { id: idTitulo, text: titulo }),
       el('button', { type: 'button', class: 'modal-close', text: '×', 'aria-label': 'Cerrar', onClick: cerrarModal }),
     ]),
     contenido,
@@ -44,8 +54,13 @@ export function abrirModal(titulo, contenido) {
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) cerrarModal();
   });
+  document.addEventListener('keydown', alPulsarTecla);
   document.body.append(overlay);
   overlayActual = overlay;
+
+  const primerCampo = modal.querySelector('input, select, textarea, button:not(.modal-close)');
+  (primerCampo || modal.querySelector('.modal-close')).focus();
+
   return overlay;
 }
 
@@ -53,5 +68,8 @@ export function cerrarModal() {
   if (overlayActual) {
     overlayActual.remove();
     overlayActual = null;
+    document.removeEventListener('keydown', alPulsarTecla);
+    if (elementoConFocoPrevio && document.contains(elementoConFocoPrevio)) elementoConFocoPrevio.focus();
+    elementoConFocoPrevio = null;
   }
 }

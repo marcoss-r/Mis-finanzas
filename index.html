@@ -14,7 +14,7 @@
                                     no tendría por dónde sacarlo del dispositivo.
        - object-src 'none' / base-uri 'self' / form-action 'none' → cierran otras vías. -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 
   <title>Mis Finanzas</title>
   <link rel="stylesheet" href="styles.css">
@@ -39,21 +39,21 @@
 
   <!-- Navegación inferior de 5 pestañas. El contenido de cada una lo pinta src/main.js
        en #vista según qué botón esté activo. -->
-  <nav class="bottom-nav">
-    <button class="nav-button active" data-vista="inicio">
-      <span class="nav-icon">🏠</span><span>Inicio</span>
+  <nav class="bottom-nav" aria-label="Secciones de la app">
+    <button class="nav-button active" data-vista="inicio" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">🏠</span><span>Inicio</span>
     </button>
     <button class="nav-button" data-vista="cuentas">
-      <span class="nav-icon">🏦</span><span>Cuentas</span>
+      <span class="nav-icon" aria-hidden="true">🏦</span><span>Cuentas</span>
     </button>
     <button class="nav-button" data-vista="movimientos">
-      <span class="nav-icon">📝</span><span>Movim.</span>
+      <span class="nav-icon" aria-hidden="true">📝</span><span>Movim.</span>
     </button>
     <button class="nav-button" data-vista="salario">
-      <span class="nav-icon">💼</span><span>Salario</span>
+      <span class="nav-icon" aria-hidden="true">💼</span><span>Salario</span>
     </button>
     <button class="nav-button" data-vista="estadisticas">
-      <span class="nav-icon">📊</span><span>Stats</span>
+      <span class="nav-icon" aria-hidden="true">📊</span><span>Stats</span>
     </button>
   </nav>
 

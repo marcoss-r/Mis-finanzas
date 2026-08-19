@@ -19,6 +19,7 @@ No hace falta instalar nada más: sin `npm`, sin `node_modules`, sin paso de com
 
 ```
 index.html, manifest.json, styles.css   → shell de la app y PWA
+sw.js                                   → service worker (caché para uso sin conexión)
 vendor/chart.umd.min.js                 → Chart.js guardado en local
 src/main.js                             → arranque y navegación
 src/store/                              → localStorage, estado en memoria, backup
@@ -27,3 +28,10 @@ src/domain/                             → cuentas, divisiones, movimientos, tr
 src/ui/                                 → las cinco pantallas y componentes reutilizables
 src/util/                               → fechas y generación de ids
 ```
+
+## Uso sin conexión
+
+`sw.js` cachea el shell de la app (HTML, CSS, todos los módulos de `src/` y Chart.js) para
+que cargue al instante y funcione sin internet. Si cambias cualquiera de esos archivos,
+sube `CACHE_VERSION` al principio de `sw.js`: si no lo haces, los usuarios que ya tengan la
+app instalada seguirán viendo la versión cacheada antigua hasta que la subas.
