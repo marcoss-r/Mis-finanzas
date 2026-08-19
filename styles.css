@@ -100,6 +100,13 @@ body {
   margin-bottom: 12px;
 }
 
+/* Encabezado de una sección que va DENTRO de una tarjeta, debajo de otro bloque
+   (p. ej. "Divisiones" tras la fila de botones de la cuenta). Necesita separarse
+   de lo que tiene encima; el h2 de la tarjeta, al ir siempre el primero, no. */
+.section-title {
+  margin-top: 28px;
+}
+
 /* ===== Formularios ===== */
 label {
   display: block;
@@ -477,6 +484,13 @@ input[type="date"] {
   font-weight: 600;
 }
 
+/* Subsecciones dentro de un modal largo (las tablas fiscales) */
+.modal h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 .modal-close {
   background: none;
   border: none;
@@ -547,7 +561,7 @@ input[type="date"] {
 }
 
 .division-item .action-row {
-  margin-top: 26px;
+  margin-top: 14px;
 }
 
 .division-item:last-child {
