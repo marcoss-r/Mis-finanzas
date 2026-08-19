@@ -534,11 +534,17 @@ input[type="date"] {
 
 .action-row button {
   flex: 1;
+  width: auto;
+  margin-top: 0;
 }
 
 .division-item {
   padding: 10px 0;
   border-bottom: 1px solid #2a2a2a;
+}
+
+.division-item .action-row {
+  margin-top: 16px;
 }
 
 .division-item:last-child {
