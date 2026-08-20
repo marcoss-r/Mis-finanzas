@@ -81,6 +81,28 @@ export function repartirPorPorcentaje(state, cuentaId, reparto, fecha) {
   return traspasos;
 }
 
+// reparto: [{ divisionId, importe }] importes fijos en € a repartir desde el "Sin asignar" actual
+export function repartirPorImporte(state, cuentaId, reparto, fecha) {
+  const disponible = sinAsignar(state, cuentaId);
+  const totalImporte = reparto.reduce((t, r) => t + Number(r.importe || 0), 0);
+  if (totalImporte > disponible + 0.001) throw new Error('El reparto supera el importe sin asignar');
+  const traspasos = [];
+  reparto.forEach((r) => {
+    const importe = Math.round(Number(r.importe || 0) * 100) / 100;
+    if (importe <= 0) return;
+    traspasos.push(crearTraspaso(state, {
+      fecha: fecha || hoyISO(),
+      importe,
+      cuentaOrigen: cuentaId,
+      divisionOrigen: null,
+      cuentaDestino: cuentaId,
+      divisionDestino: r.divisionId,
+      nota: 'Reparto inicial por importe',
+    }));
+  });
+  return traspasos;
+}
+
 // Cuánto falta ahorrar al mes para llegar al objetivo en objetivoFecha
 export function ahorroMensualNecesario(state, divisionId) {
   const division = state.divisiones.find((d) => d.id === divisionId);

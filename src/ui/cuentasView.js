@@ -2,7 +2,7 @@ import { el, tarjeta, barra, abrirModal, cerrarModal } from './componentes.js';
 import { euros } from './formato.js';
 import { update } from '../store/state.js';
 import { crearCuenta, editarCuenta, archivarCuenta, cuentasActivas, saldoCuenta, ajustarSaldo } from '../domain/cuentas.js';
-import { crearDivision, editarDivision, eliminarDivision, divisionesDeCuenta, saldoDivision, sinAsignar, repartirPorPorcentaje, ahorroMensualNecesario } from '../domain/divisiones.js';
+import { crearDivision, editarDivision, eliminarDivision, divisionesDeCuenta, saldoDivision, sinAsignar, repartirPorPorcentaje, repartirPorImporte, ahorroMensualNecesario } from '../domain/divisiones.js';
 import { crearTraspaso } from '../domain/traspasos.js';
 import { hoyISO } from '../util/fechas.js';
 
@@ -68,7 +68,7 @@ function detalleCuenta(state, cuenta) {
     ]),
     el('div', { class: 'action-row' }, [
       el('button', { type: 'button', class: 'btn-secondary', text: '+ División', onClick: () => abrirFormularioDivision(state, cuenta) }),
-      el('button', { type: 'button', class: 'btn-secondary', text: 'Reparto %', onClick: () => abrirFormularioReparto(state, cuenta) }),
+      el('button', { type: 'button', class: 'btn-secondary', text: 'Repartir', onClick: () => abrirFormularioReparto(state, cuenta) }),
     ]),
   ]);
 }
@@ -205,14 +205,37 @@ function abrirFormularioReparto(state, cuenta) {
     alert('Crea al menos una división antes de repartir.');
     return;
   }
-  const inputs = divisiones.map((d) => ({ division: d, input: el('input', { type: 'number', step: '0.1', value: '0', min: '0', max: '100' }) }));
+
+  let modo = 'importe';
+  const inputs = divisiones.map((d) => ({ division: d, input: el('input', { type: 'number', step: '0.01', value: '0', min: '0' }) }));
+  const labels = inputs.map(({ division }) => el('label', { text: `${division.nombre} (€)` }));
+
+  function aplicarModo() {
+    inputs.forEach(({ input }, i) => {
+      labels[i].textContent = `${inputs[i].division.nombre} (${modo === 'importe' ? '€' : '%'})`;
+      input.step = modo === 'importe' ? '0.01' : '0.1';
+      if (modo === 'porcentaje') input.max = '100'; else input.removeAttribute('max');
+    });
+    botonImporte.classList.toggle('btn-primary', modo === 'importe');
+    botonImporte.classList.toggle('btn-secondary', modo !== 'importe');
+    botonPorcentaje.classList.toggle('btn-primary', modo === 'porcentaje');
+    botonPorcentaje.classList.toggle('btn-secondary', modo !== 'porcentaje');
+  }
+
+  const botonImporte = el('button', { type: 'button', text: 'Importe (€)', onClick: () => { modo = 'importe'; aplicarModo(); } });
+  const botonPorcentaje = el('button', { type: 'button', text: 'Porcentaje (%)', onClick: () => { modo = 'porcentaje'; aplicarModo(); } });
 
   const form = el('form', {
     onSubmit: (e) => {
       e.preventDefault();
-      const reparto = inputs.map(({ division, input }) => ({ divisionId: division.id, porcentaje: parseFloat(input.value) || 0 }));
       try {
-        update((s) => repartirPorPorcentaje(s, cuenta.id, reparto, hoyISO()));
+        if (modo === 'importe') {
+          const reparto = inputs.map(({ division, input }) => ({ divisionId: division.id, importe: parseFloat(input.value) || 0 }));
+          update((s) => repartirPorImporte(s, cuenta.id, reparto, hoyISO()));
+        } else {
+          const reparto = inputs.map(({ division, input }) => ({ divisionId: division.id, porcentaje: parseFloat(input.value) || 0 }));
+          update((s) => repartirPorPorcentaje(s, cuenta.id, reparto, hoyISO()));
+        }
         cerrarModal();
       } catch (err) {
         alert(err.message);
@@ -220,11 +243,13 @@ function abrirFormularioReparto(state, cuenta) {
     },
   }, [
     el('p', { class: 'hint-text', text: `Repartiendo el "Sin asignar" actual: ${euros(disponible)}.` }),
-    ...inputs.flatMap(({ division, input }) => [el('label', { text: `${division.nombre} (%)` }), input]),
+    el('div', { class: 'action-row' }, [botonImporte, botonPorcentaje]),
+    ...inputs.flatMap(({ input }, i) => [labels[i], input]),
     el('button', { type: 'submit', class: 'btn-primary', text: 'Repartir' }),
   ]);
 
-  abrirModal('Reparto por porcentajes', form);
+  aplicarModo();
+  abrirModal('Repartir "Sin asignar"', form);
 }
 
 function abrirFormularioTraspaso(state) {
