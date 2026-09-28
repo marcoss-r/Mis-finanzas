@@ -1,12 +1,13 @@
 import { generarId } from '../util/id.js';
 import { hoyISO } from '../util/fechas.js';
 
-export function crearCuenta(state, { nombre, tipo, saldoInicial, tae, divisionInteres, color }) {
+export function crearCuenta(state, { nombre, tipo, saldoInicial, fechaSaldoInicial, tae, divisionInteres, color }) {
   const cuenta = {
     id: generarId('cta'),
     nombre,
     tipo: tipo === 'ahorro' ? 'ahorro' : 'corriente',
     saldoInicial: Math.round((Number(saldoInicial) || 0) * 100) / 100,
+    fechaSaldoInicial: fechaSaldoInicial || null,
     tae: tipo === 'ahorro' ? Number(tae) || 0 : 0,
     divisionInteres: divisionInteres || null,
     color: color || '#3987e5',
@@ -33,15 +34,22 @@ export function cuentasActivas(state) {
   return state.cuentas.filter((c) => !c.archivada);
 }
 
+// El saldo inicial es el saldo real al final del día `fechaSaldoInicial`: los movimientos de
+// ese día o anteriores ya están dentro de él y no se vuelven a sumar. Sin fecha, cuentan todos.
+export function afectaAlSaldo(cuenta, fechaISO) {
+  return !cuenta?.fechaSaldoInicial || fechaISO > cuenta.fechaSaldoInicial;
+}
+
 export function saldoCuenta(state, cuentaId) {
   const cuenta = state.cuentas.find((c) => c.id === cuentaId);
   if (!cuenta) return 0;
   let saldo = cuenta.saldoInicial;
   for (const m of state.movimientos) {
-    if (m.cuentaId !== cuentaId) continue;
+    if (m.cuentaId !== cuentaId || !afectaAlSaldo(cuenta, m.fecha)) continue;
     saldo += m.tipo === 'ingreso' ? m.importe : -m.importe;
   }
   for (const t of state.traspasos) {
+    if (!afectaAlSaldo(cuenta, t.fecha)) continue;
     if (t.cuentaDestino === cuentaId) saldo += t.importe;
     if (t.cuentaOrigen === cuentaId) saldo -= t.importe;
   }

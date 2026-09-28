@@ -1,12 +1,13 @@
 import { estadoVacio } from './storage.js';
 import { replaceState } from './state.js';
+import { hoyISO } from '../util/fechas.js';
 
 export function exportarBackup(state) {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const enlace = document.createElement('a');
   enlace.href = url;
-  enlace.download = `mis-finanzas-${new Date().toISOString().slice(0, 10)}.json`;
+  enlace.download = `mis-finanzas-${hoyISO()}.json`;
   enlace.click();
   URL.revokeObjectURL(url);
 }

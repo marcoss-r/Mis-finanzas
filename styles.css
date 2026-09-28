@@ -8,6 +8,13 @@
   --red: #f87171;
   --orange: #fbbf24;
   --border-radius: 10px;
+  /* Zonas que ocupan la Dynamic Island / barra de estado y la barra de inicio del iPhone.
+     Solo tienen valor gracias a viewport-fit=cover en index.html. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --nav-height: 64px;
 }
 
 /* ===== Reset básico: quitamos márgenes por defecto del navegador ===== */
@@ -19,6 +26,9 @@
 
 html {
   touch-action: pan-x pan-y;
+  /* iOS agranda el texto por su cuenta al girar a horizontal */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -31,20 +41,40 @@ body {
   touch-action: pan-x pan-y;
 }
 
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Con la barra de estado translúcida, lo que se desplaza pasaría por debajo de la hora y la
+   Dynamic Island. Esta franja fija lo tapa con el color de fondo. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--safe-top);
+  background-color: var(--bg);
+  z-index: 30;
+}
+
 .app-header {
-  padding: 20px;
+  padding: calc(16px + var(--safe-top)) calc(20px + var(--safe-right)) 16px calc(20px + var(--safe-left));
   text-align: center;
 }
 
 .app-header h1 {
+  font-size: 26px;
   font-weight: 700;
+  line-height: 1.2;
 }
 
 /* ===== Contenedor principal ===== */
 .container {
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 16px 84px;
+  /* Deja sitio abajo para la barra de pestañas fija y la barra de inicio del iPhone */
+  padding: 0 calc(16px + var(--safe-right)) calc(var(--nav-height) + var(--safe-bottom) + 24px) calc(16px + var(--safe-left));
 }
 
 /* ===== Navegación inferior de 5 pestañas ===== */
@@ -54,9 +84,10 @@ body {
   left: 0;
   right: 0;
   display: flex;
+  min-height: calc(var(--nav-height) + var(--safe-bottom));
   background-color: var(--bg-card);
   border-top: 1px solid #2a2a2a;
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  padding: 4px calc(4px + var(--safe-right)) calc(4px + var(--safe-bottom)) calc(4px + var(--safe-left));
   z-index: 20;
 }
 
@@ -65,7 +96,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  min-width: 0;
+  min-height: 56px;
   background: none;
   border: none;
   color: var(--text-secondary);
@@ -75,6 +109,7 @@ body {
   padding: 6px 2px;
   cursor: pointer;
   border-radius: 8px;
+  white-space: nowrap;
 }
 
 .nav-button.active {
@@ -97,7 +132,9 @@ body {
 .card h2 {
   font-size: 17px;
   font-weight: 600;
+  line-height: 1.3;
   margin-bottom: 12px;
+  overflow-wrap: anywhere;
 }
 
 /* Encabezado de una sección que va DENTRO de una tarjeta, debajo de otro bloque
@@ -120,7 +157,8 @@ label {
    Antes usábamos label:first-child, pero eso también anulaba el margen del
    label "Fecha" por estar envuelto en su propio div .form-group, dejándolo
    pegado a la caja de Importe. Con > label:first-child solo afecta al de arriba. */
-form > label:first-child {
+form > label:first-child,
+.card > label:first-child {
   margin-top: 0;
 }
 
@@ -138,15 +176,21 @@ form > label:first-child {
 select,
 input[type="text"],
 input[type="number"],
-input[type="date"] {
+input[type="date"],
+input[type="month"] {
+  display: block;
   width: 100%;
+  min-width: 0;
+  /* 44px es el tamaño mínimo de toque de Apple; además evita que un date vacío se aplaste */
+  min-height: 44px;
   background-color: var(--bg);
   color: var(--text);
   border: 1px solid #333;
   border-radius: 8px;
   padding: 10px 12px;
   font-family: inherit;
-  font-size: 15px;
+  /* Con menos de 16px Safari hace zoom al enfocar el campo y descuadra la pantalla */
+  font-size: 16px;
   font-weight: 500;
 }
 
@@ -155,13 +199,29 @@ input[type="date"] {
    saliéndose del recuadro; en escritorio no pasa porque ese ancho mínimo es menor.
    Quitarle el estilo nativo con appearance:none hace que respete el width normal
    (el selector de fecha al tocar sigue abriéndose igual). */
-input[type="date"] {
+input[type="date"],
+input[type="month"] {
   -webkit-appearance: none;
   appearance: none;
   min-width: 0;
   /* iOS centra el valor por defecto al quitar el estilo nativo; lo alineamos
      a la izquierda para que coincida con el resto de campos del formulario. */
   text-align: left;
+}
+
+input[type="date"]::-webkit-date-and-time-value,
+input[type="month"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+input[type="color"] {
+  display: block;
+  width: 64px;
+  height: 44px;
+  padding: 2px;
+  background-color: var(--bg);
+  border: 1px solid #333;
+  border-radius: 8px;
 }
 
 .checkbox-label {
@@ -173,7 +233,9 @@ input[type="date"] {
 }
 
 .checkbox-label input {
-  width: auto;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .btn-primary,
@@ -183,9 +245,11 @@ input[type="date"] {
   font-family: inherit;
   font-weight: 600;
   font-size: 15px;
+  line-height: 1.25;
   border: none;
   border-radius: 8px;
-  padding: 12px 16px;
+  min-height: 44px;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -216,11 +280,11 @@ input[type="date"] {
 .category-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   background-color: #333;
   color: var(--text);
   border-radius: 999px;
-  padding: 6px 8px 6px 14px;
+  padding: 2px 2px 2px 14px;
   font-size: 14px;
 }
 
@@ -229,9 +293,10 @@ input[type="date"] {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
-  padding: 2px 6px;
+  width: 36px;
+  height: 36px;
 }
 
 .category-chip button:hover {
@@ -247,13 +312,18 @@ input[type="date"] {
   flex: 1;
 }
 
+.add-category button {
+  flex-shrink: 0;
+}
+
 .backup-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .backup-actions button {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 /* ===== Lista de movimientos ===== */
@@ -261,10 +331,16 @@ input[type="date"] {
   list-style: none;
 }
 
+/* Nombre arriba y categoría debajo a la izquierda; importe y menú a la derecha. Antes iban
+   los cuatro en una sola fila y en el ancho del iPhone se pisaban. */
 .movement-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "nombre importe menu"
+    "categoria importe menu";
   align-items: center;
-  justify-content: space-between;
+  column-gap: 10px;
   padding: 10px 0;
   border-bottom: 1px solid #2a2a2a;
 }
@@ -278,21 +354,44 @@ input[type="date"] {
   padding-left: 8px;
 }
 
+/* Botón suelto al final de la fila (p. ej. "Editar" en el historial de nóminas) */
+.movement-item > .btn-secondary {
+  grid-area: menu;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
 .hint-text {
   color: var(--text-secondary);
   font-size: 13px;
   margin-bottom: 10px;
 }
 
+/* Texto de ayuda justo debajo de un botón suelto (p. ej. "Suma actual" tras "+ Destino") */
+.btn-secondary + .hint-text {
+  margin-top: 10px;
+}
+
 .movement-name {
-  flex: 1;
+  grid-area: nombre;
+  min-width: 0;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .movement-category {
+  grid-area: categoria;
+  min-width: 0;
   color: var(--text-secondary);
   font-size: 13px;
-  margin: 0 12px;
+  overflow-wrap: anywhere;
+}
+
+.movement-amount {
+  grid-area: importe;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .movement-amount.expense {
@@ -307,16 +406,18 @@ input[type="date"] {
 
 /* ===== Menú de opciones (editar / eliminar) de cada movimiento ===== */
 .movement-menu {
+  grid-area: menu;
   position: relative;
-  margin-left: 8px;
 }
 
 .movement-menu-btn {
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1;
+  min-width: 36px;
+  min-height: 44px;
   padding: 4px 8px;
   cursor: pointer;
 }
@@ -329,18 +430,19 @@ input[type="date"] {
   background-color: #2a2a2a;
   border-radius: 8px;
   overflow: hidden;
-  z-index: 10;
+  z-index: 25;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .movement-menu-dropdown button {
   display: block;
   width: 100%;
+  min-height: 44px;
   background: none;
   border: none;
   color: var(--text);
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   text-align: left;
   padding: 10px 14px;
@@ -363,7 +465,7 @@ input[type="date"] {
 /* ===== Estadísticas ===== */
 .chart-box {
   position: relative;
-  height: 220px;
+  height: 260px;
 }
 
 .chart-empty-message {
@@ -382,8 +484,9 @@ input[type="date"] {
 }
 
 .summary-grid {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
   text-align: center;
 }
 
@@ -391,6 +494,7 @@ input[type="date"] {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
 .summary-label {
@@ -400,7 +504,10 @@ input[type="date"] {
 
 .summary-value {
   font-weight: 700;
-  font-size: 18px;
+  /* Tres importes en una fila: el tamaño baja con el ancho para que no se toquen */
+  font-size: clamp(14px, 4.2vw, 18px);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .summary-value.income {
@@ -439,8 +546,9 @@ input[type="date"] {
 }
 
 .big-number {
-  font-size: 32px;
+  font-size: clamp(26px, 8vw, 32px);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .big-number.income {
@@ -465,23 +573,36 @@ input[type="date"] {
 .modal {
   background-color: var(--bg-card);
   border-radius: var(--border-radius) var(--border-radius) 0 0;
-  padding: 18px;
+  padding: 0 calc(18px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(18px + var(--safe-left));
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
+  /* dvh descuenta las barras de Safari; sin él la hoja se mete bajo la Dynamic Island */
+  max-height: calc(100dvh - var(--safe-top) - 16px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
+/* El título y la × se quedan fijos arriba mientras se desplaza un formulario largo */
 .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  padding: 14px 0 8px;
   margin-bottom: 8px;
+  background-color: var(--bg-card);
 }
 
 .modal-header h2 {
+  min-width: 0;
   font-size: 17px;
   font-weight: 600;
+  line-height: 1.3;
 }
 
 /* Subsecciones dentro de un modal largo (las tablas fiscales) */
@@ -491,14 +612,24 @@ input[type="date"] {
   margin-bottom: 4px;
 }
 
+/* Dos formularios seguidos en el mismo modal (p. ej. editar nómina) */
+.modal form + form {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #2a2a2a;
+}
+
 .modal-close {
+  flex-shrink: 0;
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
   cursor: pointer;
-  padding: 4px 8px;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
 }
 
 /* ===== Cuentas ===== */
@@ -529,6 +660,7 @@ input[type="date"] {
 
 .account-name {
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .account-meta {
@@ -542,15 +674,17 @@ input[type="date"] {
   white-space: nowrap;
 }
 
+/* Los botones reparten el ancho y, si no caben (p. ej. "Editar · Ajustar saldo · Archivar"
+   en un iPhone), pasan a la línea siguiente en vez de salirse unos encima de otros. */
 .action-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
 }
 
 .action-row button {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
   width: auto;
   margin-top: 0;
 }
@@ -568,11 +702,30 @@ input[type="date"] {
   border-bottom: none;
 }
 
+/* Nombre a la izquierda e importe a la derecha; si no caben, el importe baja a su propia
+   línea alineado a la derecha en lugar de pisar el nombre. */
 .division-top {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 4px 12px;
   margin-bottom: 6px;
+}
+
+.division-top > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.division-top > :last-child:not(:first-child) {
+  margin-left: auto;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.division-top h2 {
+  margin-bottom: 0;
 }
 
 .division-name {
@@ -617,10 +770,11 @@ input[type="date"] {
 
 /* ===== Inicio ===== */
 .networth-value {
-  font-size: 36px;
+  font-size: clamp(28px, 9vw, 36px);
   font-weight: 700;
   text-align: center;
   padding: 8px 0;
+  overflow-wrap: anywhere;
 }
 
 .goal-item {
@@ -646,9 +800,20 @@ input[type="date"] {
 .breakdown-row {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   padding: 8px 0;
   border-bottom: 1px solid #2a2a2a;
   font-size: 14px;
+}
+
+.breakdown-row > :first-child {
+  min-width: 0;
+}
+
+.breakdown-row > :last-child {
+  white-space: nowrap;
+  text-align: right;
 }
 
 .breakdown-row:last-child {
@@ -661,27 +826,40 @@ input[type="date"] {
   color: var(--green);
 }
 
+/* Fila de reparto (cuenta · división · % · ×) y de tramos fiscales. Los select no pueden
+   encogerse por debajo de su opción más larga salvo con min-width: 0; si aun así no caben
+   se reparten en dos líneas. */
 .split-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
   margin-top: 10px;
 }
 
-.split-row select {
-  flex: 2;
+.split-row > * {
+  min-width: 0;
 }
 
-.split-row input {
-  flex: 1;
+.split-row select {
+  flex: 1 1 130px;
+}
+
+.split-row input,
+.split-row > div {
+  flex: 1 1 80px;
+}
+
+.split-row > div > label {
+  margin-top: 0;
 }
 
 .split-row button {
-  flex-shrink: 0;
+  flex: 0 0 44px;
+  height: 44px;
   background: none;
   border: none;
   color: var(--red);
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
-  padding: 4px 8px;
 }

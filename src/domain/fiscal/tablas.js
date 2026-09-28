@@ -31,17 +31,33 @@ export const TABLAS_POR_DEFECTO = {
     { hasta: 300000, tipo: 22.50 },
     { hasta: null, tipo: 24.50 },
   ],
-  // Escala autonómica de la Comunidad de Madrid, más baja que la media estatal.
+  // Escala autonómica de la Comunidad de Madrid (vigente desde 2023), más baja que la media estatal.
   escalaMadrid: [
     { hasta: 13362.22, tipo: 8.50 },
-    { hasta: 19004.66, tipo: 10.70 },
-    { hasta: 35425.10, tipo: 12.80 },
-    { hasta: 57320.98, tipo: 17.80 },
-    { hasta: 66593.00, tipo: 18.80 },
-    { hasta: 76837.20, tipo: 19.80 },
-    { hasta: 300000.00, tipo: 22.80 },
-    { hasta: null, tipo: 23.80 },
+    { hasta: 19004.63, tipo: 10.70 },
+    { hasta: 35425.68, tipo: 12.80 },
+    { hasta: 57320.40, tipo: 17.40 },
+    { hasta: null, tipo: 20.50 },
   ],
+  // Otros gastos deducibles del art. 19.2.f LIRPF.
+  gastosDeducibles: 2000,
+  // Reducción por obtención de rendimientos del trabajo (art. 20 LIRPF, tramos desde 2024),
+  // en función del rendimiento neto previo (íntegro − Seguridad Social).
+  reduccionTrabajo: {
+    maxima: 7302,
+    umbral1: 14852,
+    pendiente1: 1.75,
+    umbral2: 17673.52,
+    importe2: 2364.34,
+    pendiente2: 1.14,
+    umbral3: 19747.5,
+  },
+  // Por debajo de esta retribución anual no se practica retención (art. 81 RIRPF, soltero
+  // sin hijos). Por encima, la cuota de retención no puede superar el 43% del exceso.
+  limiteExcluyente: 15876,
+  topeCuotaSobreExceso: 43,
+  // Retención mínima para contratos de duración inferior al año (art. 86.2 RIRPF).
+  retencionMinimaTemporal: 2,
   minimos: {
     contribuyente: 5550,
     mayor65: 1150,
@@ -67,6 +83,18 @@ export const TABLAS_POR_DEFECTO = {
   },
 };
 
+const ESCALA_MADRID_ANTIGUA = [13362.22, 19004.66, 35425.10, 57320.98, 66593.00, 76837.20, 300000.00, null];
+
+// Las versiones anteriores guardaban la escala de Madrid errónea al pulsar "Guardar" en
+// Ajustes. Si el override es idéntico a esa escala antigua, se descarta para usar la actual.
+export function migrarTablasFiscales(state) {
+  const overrides = state.ajustes?.tablasFiscales;
+  const escala = overrides?.escalaMadrid;
+  if (!escala) return;
+  const esAntigua = escala.length === ESCALA_MADRID_ANTIGUA.length && escala.every((t, i) => t.hasta === ESCALA_MADRID_ANTIGUA[i]);
+  if (esAntigua) delete overrides.escalaMadrid;
+}
+
 export function obtenerTablasFiscales(state) {
   const overrides = state.ajustes?.tablasFiscales || {};
   return {
@@ -74,6 +102,7 @@ export function obtenerTablasFiscales(state) {
     ...overrides,
     ss: { ...TABLAS_POR_DEFECTO.ss, ...(overrides.ss || {}) },
     minimos: { ...TABLAS_POR_DEFECTO.minimos, ...(overrides.minimos || {}) },
+    reduccionTrabajo: { ...TABLAS_POR_DEFECTO.reduccionTrabajo, ...(overrides.reduccionTrabajo || {}) },
     retribucionFlexible: { ...TABLAS_POR_DEFECTO.retribucionFlexible, ...(overrides.retribucionFlexible || {}) },
   };
 }

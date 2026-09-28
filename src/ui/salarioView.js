@@ -1,9 +1,9 @@
 import { el, tarjeta, abrirModal, cerrarModal } from './componentes.js';
-import { euros, porcentaje } from './formato.js';
+import { euros, porcentaje, fechaLarga } from './formato.js';
 import { update } from '../store/state.js';
 import { cuentasActivas } from '../domain/cuentas.js';
 import { divisionesDeCuenta } from '../domain/divisiones.js';
-import { calcularNomina, repartoDelMes, guardarReparto, fechaDeCobro, generarNominasPendientes, editarNetoNomina } from '../domain/salario.js';
+import { calcularNomina, repartoDelMes, guardarReparto, fechaDeCobro, generarNominasPendientes, editarNetoNomina, editarNominaReal, estimarRentaAnual, recalcularNominas } from '../domain/salario.js';
 import { mesActual, formatearMes } from '../util/fechas.js';
 import { abrirAjustesFiscales } from './ajustesView.js';
 
@@ -22,6 +22,7 @@ export function renderSalario(contenedor, state) {
 
   const mes = mesActual();
   const nomina = calcularNomina(state, state.salario, mes);
+  const renta = estimarRentaAnual(state, Number(mes.slice(0, 4)));
 
   contenedor.append(
     tarjeta([
@@ -38,16 +39,29 @@ export function renderSalario(contenedor, state) {
     tarjeta([
       el('h2', { text: `Desglose estimado — ${formatearMes(mes)}` }),
       el('ul', { class: 'breakdown-list' }, [
-        filaDesglose('Bruto del mes', euros(nomina.brutoMes)),
-        filaDesglose('Retribución flexible (exenta)', `-${euros(nomina.retribucionFlexible)}`),
+        filaDesglose(nomina.fraccionMes < 1 ? `Bruto del mes (${Math.round(nomina.fraccionMes * 30)}/30 días)` : 'Bruto del mes', euros(nomina.brutoMes)),
+        nomina.pagaExtra > 0 ? filaDesglose('Incluye paga extra', euros(nomina.pagaExtra)) : null,
+        nomina.retribucionFlexible > 0 ? filaDesglose('Retribución flexible (exenta)', `-${euros(nomina.retribucionFlexible)}`) : null,
         filaDesglose('Base de cotización', euros(nomina.baseCotizacion)),
         filaDesglose('Seguridad Social', `-${euros(nomina.seguridadSocial)}`),
         filaDesglose(`IRPF (retención ${porcentaje(nomina.tipoRetencion)})`, `-${euros(nomina.irpf)}`),
         filaDesglose('Neto mensual', euros(nomina.neto), true),
       ]),
-      el('p', { class: 'hint-text', text: `Cobro estimado el ${fechaDeCobro(state.salario, mes)}.` }),
-      el('p', { class: 'hint-text', text: `Estimación anual (Madrid): retenido ~${euros(nomina.estimacionAnualMadrid.retenidoEstimado)}, cuota real ~${euros(nomina.estimacionAnualMadrid.cuotaEstimada)} → ${nomina.estimacionAnualMadrid.diferencia >= 0 ? 'a devolver' : 'a pagar'} ~${euros(Math.abs(nomina.estimacionAnualMadrid.diferencia))}.` }),
+      el('p', { class: 'hint-text', text: `Cobro estimado el ${fechaLarga(fechaDeCobro(state.salario, mes))}.` }),
       nomina.avisos.length ? el('div', { class: 'warning-box', text: nomina.avisos.join(' ') }) : null,
+    ]),
+  );
+
+  contenedor.append(
+    tarjeta([
+      el('h2', { text: `Declaración de la renta ${renta.anio}` }),
+      el('p', { class: 'hint-text', text: `Estimación para Madrid con ${renta.nominasReales === 1 ? '1 nómina registrada' : `${renta.nominasReales} nóminas registradas`} y el resto del año calculado. Solo cuenta este salario.` }),
+      el('ul', { class: 'breakdown-list' }, [
+        filaDesglose('Ingresos brutos del año', euros(renta.rendimientoIntegro)),
+        filaDesglose('IRPF retenido en nóminas', euros(renta.retenido)),
+        filaDesglose('Impuesto que te corresponde', euros(renta.cuotaTotal)),
+        filaDesglose(renta.resultado >= 0 ? 'A devolver' : 'A pagar', euros(Math.abs(renta.resultado)), true),
+      ]),
     ]),
   );
 
@@ -71,29 +85,69 @@ export function renderSalario(contenedor, state) {
             el('span', { class: 'movement-name', text: formatearMes(n.mes) }),
             el('span', { class: 'movement-category', text: n.editadaManualmente ? 'Editada' : 'Automática' }),
             el('span', { class: 'movement-amount income', text: euros(n.neto) }),
-            el('button', { type: 'button', class: 'btn-secondary', text: 'Editar', onClick: () => abrirFormularioEditarNomina(n) }),
+            el('button', { type: 'button', class: 'btn-secondary', text: 'Editar', onClick: () => abrirFormularioEditarNomina(state, n) }),
           ])))
         : el('p', { class: 'empty-state', text: 'Todavía no se ha generado ninguna nómina.' }),
     ]),
   );
 }
 
-function abrirFormularioEditarNomina(nomina) {
-  const neto = el('input', { type: 'number', step: '0.01', min: '0', value: nomina.neto });
-  const form = el('form', {
+function abrirFormularioEditarNomina(state, nomina) {
+  const numero = (valor) => el('input', { type: 'number', step: '0.01', min: '0', value: valor ?? '' });
+  const neto = numero(nomina.neto);
+  const bruto = numero(nomina.brutoMes);
+  const flexible = numero(nomina.retribucionFlexible);
+  const ss = numero(nomina.seguridadSocial);
+  const irpf = numero(nomina.irpf);
+  const aplicarTipo = el('input', { type: 'checkbox' });
+  aplicarTipo.checked = true;
+
+  const guardar = (mutar) => {
+    update((s) => {
+      mutar(s);
+      if (aplicarTipo.checked) {
+        const editada = s.nominas.find((n) => n.mes === nomina.mes);
+        s.salario.tipoRetencionManual = editada.tipoRetencion;
+        recalcularNominas(s);
+      }
+    });
+    cerrarModal();
+  };
+
+  const formNeto = el('form', {
     onSubmit: (e) => {
       e.preventDefault();
       const valor = parseFloat(neto.value);
       if (!(valor >= 0)) return;
-      update((s) => editarNetoNomina(s, nomina.mes, valor));
-      cerrarModal();
+      guardar((s) => editarNetoNomina(s, nomina.mes, valor));
     },
   }, [
-    el('p', { class: 'hint-text', text: `Nómina calculada: ${euros(nomina.neto)}. Si tu nómina real fue distinta, escribe el importe real: se ajustarán proporcionalmente los ingresos ya generados en tus cuentas.` }),
+    el('p', { class: 'hint-text', text: `Nómina calculada: ${euros(nomina.neto)}. Si solo sabes lo que te ingresaron, escríbelo: el IRPF retenido se deduce por diferencia y se ajustan los ingresos ya generados.` }),
     el('label', { text: 'Neto real (€)' }), neto,
-    el('button', { type: 'submit', class: 'btn-primary', text: 'Guardar' }),
+    el('button', { type: 'submit', class: 'btn-primary', text: 'Guardar neto' }),
   ]);
-  abrirModal(`Editar nómina — ${formatearMes(nomina.mes)}`, form);
+
+  const formDesglose = el('form', {
+    onSubmit: (e) => {
+      e.preventDefault();
+      const valores = [bruto, flexible, ss, irpf].map((i) => parseFloat(i.value) || 0);
+      if (!(valores[0] > 0)) return;
+      guardar((s) => editarNominaReal(s, nomina.mes, { brutoMes: valores[0], retribucionFlexible: valores[1], seguridadSocial: valores[2], irpf: valores[3] }));
+    },
+  }, [
+    el('p', { class: 'hint-text', text: 'Con la nómina en la mano, copia el total devengado, la retribución flexible exenta, las deducciones de Seguridad Social y la retención de IRPF.' }),
+    el('label', { text: 'Total devengado / bruto (€)' }), bruto,
+    el('label', { text: 'Retribución flexible exenta (€)' }), flexible,
+    el('label', { text: 'Seguridad Social (€)' }), ss,
+    el('label', { text: 'Retención IRPF (€)' }), irpf,
+    el('button', { type: 'submit', class: 'btn-primary', text: 'Guardar desglose real' }),
+  ]);
+
+  abrirModal(`Editar nómina — ${formatearMes(nomina.mes)}`, el('div', {}, [
+    el('label', { class: 'checkbox-label' }, [aplicarTipo, document.createTextNode(' Usar el % de IRPF de esta nómina para los próximos meses')]),
+    formNeto,
+    formDesglose,
+  ]));
 }
 
 function filaDesglose(etiqueta, valor, total) {
@@ -240,6 +294,8 @@ function abrirFormularioConfiguracion(state) {
   const contrato = el('select', {}, [el('option', { value: 'indefinido', text: 'Indefinido' }), el('option', { value: 'temporal', text: 'Temporal' })]);
   contrato.value = s.contrato || 'indefinido';
   const activoDesde = el('input', { type: 'month', value: s.activoDesde || mesActual() });
+  const fechaIncorporacion = el('input', { type: 'date', value: s.fechaIncorporacion || '' });
+  const tipoRetencionManual = el('input', { type: 'number', step: '0.01', min: '0', max: '47', placeholder: 'automático', value: s.tipoRetencionManual ?? '' });
 
   const situ = s.situacion || {};
   const edad = el('input', { type: 'number', min: '16', max: '100', value: situ.edad ?? 30 });
@@ -269,6 +325,8 @@ function abrirFormularioConfiguracion(state) {
           ajusteDiaNoHabil: 'anterior',
           contrato: contrato.value,
           activoDesde: activoDesde.value,
+          fechaIncorporacion: fechaIncorporacion.value || null,
+          tipoRetencionManual: tipoRetencionManual.value === '' ? null : parseFloat(tipoRetencionManual.value),
           retribucionFlexible: st.salario?.retribucionFlexible || [],
           cuentaRetribucionFlexible: st.salario?.cuentaRetribucionFlexible || null,
           situacion: {
@@ -280,6 +338,7 @@ function abrirFormularioConfiguracion(state) {
             movilidadReducida: movilidadReducida.checked,
           },
         };
+        recalcularNominas(st);
         generarNominasPendientes(st);
       });
       cerrarModal();
@@ -292,6 +351,8 @@ function abrirFormularioConfiguracion(state) {
     el('label', { text: 'Día de cobro' }), diaCobro,
     el('label', { text: 'Tipo de contrato' }), contrato,
     el('label', { text: 'Nómina activa desde' }), activoDesde,
+    el('label', { text: 'Fecha de incorporación (opcional)' }), fechaIncorporacion,
+    el('label', { text: '% IRPF de tu nómina (vacío = calcularlo)' }), tipoRetencionManual,
     el('label', { text: 'Edad' }), edad,
     el('label', { text: 'Número de hijos' }), numHijos,
     el('label', { text: 'De ellos, menores de 3 años' }), hijosMenores3,

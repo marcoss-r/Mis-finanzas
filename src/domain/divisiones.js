@@ -1,6 +1,6 @@
 import { generarId } from '../util/id.js';
 import { hoyISO } from '../util/fechas.js';
-import { saldoCuenta } from './cuentas.js';
+import { saldoCuenta, afectaAlSaldo } from './cuentas.js';
 import { crearTraspaso } from './traspasos.js';
 
 export function crearDivision(state, { cuentaId, nombre, objetivo, objetivoFecha, color }) {
@@ -40,12 +40,15 @@ export function divisionesDeCuenta(state, cuentaId) {
 
 export function saldoDivision(state, divisionId) {
   if (!divisionId) return 0;
+  const division = state.divisiones.find((d) => d.id === divisionId);
+  const cuenta = state.cuentas.find((c) => c.id === division?.cuentaId);
   let saldo = 0;
   for (const m of state.movimientos) {
-    if (m.divisionId !== divisionId) continue;
+    if (m.divisionId !== divisionId || !afectaAlSaldo(cuenta, m.fecha)) continue;
     saldo += m.tipo === 'ingreso' ? m.importe : -m.importe;
   }
   for (const t of state.traspasos) {
+    if (!afectaAlSaldo(cuenta, t.fecha)) continue;
     if (t.divisionDestino === divisionId) saldo += t.importe;
     if (t.divisionOrigen === divisionId) saldo -= t.importe;
   }

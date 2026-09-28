@@ -1,5 +1,5 @@
 import { generarId } from '../util/id.js';
-import { mesesEntre, mesActual } from '../util/fechas.js';
+import { mesesEntre, mesActual, fechaISOLocal } from '../util/fechas.js';
 import { crearMovimiento } from './movimientos.js';
 
 export function crearSuscripcion(state, datos) {
@@ -36,7 +36,7 @@ export function eliminarSuscripcion(state, id) {
 // deberían haberse producido, para que el saldo de la cuenta los refleje. Es idempotente:
 // comprueba si ya existe el movimiento de ese mes antes de crearlo.
 export function generarCargosPendientes(state, hastaFecha = new Date()) {
-  const hastaMes = hastaFecha.toISOString().slice(0, 7);
+  const hastaMes = fechaISOLocal(hastaFecha).slice(0, 7);
   const generados = [];
   state.suscripciones.filter((s) => s.activa).forEach((sus) => {
     mesesEntre(sus.desde, hastaMes).forEach((mes) => {

@@ -26,34 +26,52 @@ export function calcularMinimoPersonalYFamiliar(state, situacion) {
   return minimo;
 }
 
-// Reducción simplificada por obtención de rendimientos del trabajo (art. 20 LIRPF), para
-// rentas del trabajo bajas/medias.
-function reduccionRendimientoTrabajo(rendimientoPrevio) {
-  if (rendimientoPrevio <= 14047.5) return 7302;
-  if (rendimientoPrevio >= 19747.5) return 0;
-  return 7302 - 1.14 * (rendimientoPrevio - 14047.5);
+// Reducción por obtención de rendimientos del trabajo (art. 20 LIRPF). Se calcula sobre el
+// rendimiento neto previo: íntegro menos Seguridad Social, sin restar aún los 2.000 € de
+// otros gastos del art. 19.2.f.
+export function reduccionRendimientoTrabajo(state, rendimientoNetoPrevio) {
+  const r = obtenerTablasFiscales(state).reduccionTrabajo;
+  const rn = rendimientoNetoPrevio;
+  if (rn <= r.umbral1) return r.maxima;
+  if (rn <= r.umbral2) return r.maxima - r.pendiente1 * (rn - r.umbral1);
+  if (rn <= r.umbral3) return r.importe2 - r.pendiente2 * (rn - r.umbral2);
+  return 0;
 }
 
+// Base sobre la que se aplica la escala, sin restar el mínimo personal y familiar: el mínimo
+// se descuenta después aplicando la escala sobre él (tributa a tipo cero en el primer tramo).
 export function calcularBaseImponible(state, rendimientoIntegroAnual, cotizacionSSAnual, situacion) {
-  const gastosGenericos = 2000;
-  const rendimientoPrevio = Math.max(0, rendimientoIntegroAnual - cotizacionSSAnual - gastosGenericos);
-  const reduccion = Math.max(0, reduccionRendimientoTrabajo(rendimientoPrevio));
-  const rendimientoNeto = Math.max(0, rendimientoPrevio - reduccion);
+  const tablas = obtenerTablasFiscales(state);
+  const rendimientoNetoPrevio = Math.max(0, rendimientoIntegroAnual - cotizacionSSAnual);
+  const reduccion = reduccionRendimientoTrabajo(state, rendimientoNetoPrevio);
+  const base = Math.max(0, rendimientoNetoPrevio - tablas.gastosDeducibles - reduccion);
   const minimo = calcularMinimoPersonalYFamiliar(state, situacion);
-  const base = Math.max(0, rendimientoNeto - minimo);
-  return { rendimientoNeto, minimo, base };
+  return { rendimientoNetoPrevio, reduccion, minimo, base };
 }
 
-export function calcularTipoRetencion(state, baseImponibleAnual, rendimientoIntegroAnual) {
+function cuotaConMinimo(base, minimo, escala) {
+  return Math.max(0, aplicarEscala(base, escala) - aplicarEscala(Math.min(minimo, base), escala));
+}
+
+// Tipo de retención de la nómina según el procedimiento del art. 85-86 RIRPF.
+export function calcularTipoRetencion(state, { base, minimo }, rendimientoIntegroAnual, contrato) {
   const tablas = obtenerTablasFiscales(state);
-  const cuota = aplicarEscala(baseImponibleAnual, tablas.escalaRetenciones);
-  const tipo = rendimientoIntegroAnual > 0 ? (cuota / rendimientoIntegroAnual) * 100 : 0;
+  if (rendimientoIntegroAnual <= 0) return 0;
+  let cuota = 0;
+  if (rendimientoIntegroAnual > tablas.limiteExcluyente) {
+    cuota = cuotaConMinimo(base, minimo, tablas.escalaRetenciones);
+    const tope = (rendimientoIntegroAnual - tablas.limiteExcluyente) * (tablas.topeCuotaSobreExceso / 100);
+    cuota = Math.min(cuota, tope);
+  }
+  let tipo = Math.round((cuota / rendimientoIntegroAnual) * 10000) / 100;
+  if (contrato === 'temporal') tipo = Math.max(tipo, tablas.retencionMinimaTemporal);
   return Math.max(0, Math.min(47, tipo));
 }
 
-export function calcularCuotaAnualMadrid(state, baseImponibleAnual) {
+// Cuota íntegra anual (estatal + Comunidad de Madrid) que saldría en la declaración.
+export function calcularCuotaAnualMadrid(state, { base, minimo }) {
   const tablas = obtenerTablasFiscales(state);
-  const cuotaEstatal = aplicarEscala(baseImponibleAnual, tablas.escalaEstatal);
-  const cuotaMadrid = aplicarEscala(baseImponibleAnual, tablas.escalaMadrid);
+  const cuotaEstatal = cuotaConMinimo(base, minimo, tablas.escalaEstatal);
+  const cuotaMadrid = cuotaConMinimo(base, minimo, tablas.escalaMadrid);
   return { cuotaEstatal, cuotaMadrid, total: cuotaEstatal + cuotaMadrid };
 }
