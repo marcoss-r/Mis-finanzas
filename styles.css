@@ -29,6 +29,11 @@ html {
   /* iOS agranda el texto por su cuenta al girar a horizontal */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* En la app instalada con barra de estado translúcida, iOS calcula la pantalla sin la
+     franja de la barra de estado; en páginas cortas (p. ej. Cuentas) la barra de pestañas
+     fija quedaba flotando por encima del borde inferior. Así el documento cubre siempre
+     la pantalla completa. */
+  min-height: calc(100% + var(--safe-top));
 }
 
 body {
@@ -582,6 +587,10 @@ input[type="color"] {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.modal:focus {
+  outline: none;
 }
 
 /* El título y la × se quedan fijos arriba mientras se desplaza un formulario largo */

@@ -76,6 +76,14 @@ botones.forEach((btn) => {
 
 subscribe(render);
 
+// Al cerrar el teclado, iOS a veces deja la página desplazada y la barra de pestañas fija
+// fuera de su sitio hasta que haces scroll. Recolocar el scroll la devuelve abajo.
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (!document.activeElement?.matches('input, select, textarea')) window.scrollTo(window.scrollX, window.scrollY);
+  }, 100);
+});
+
 update((state) => {
   migrarTablasFiscales(state);
   recalcularNominas(state);

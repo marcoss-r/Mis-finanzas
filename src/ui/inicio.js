@@ -81,7 +81,9 @@ export function renderInicio(contenedor, state) {
   }
 
   if (state.salario) {
-    const proximoMes = fechaDeCobro(state.salario, mes) >= hoyISO() ? mes : mesSiguiente(mes);
+    // El día de cobro la nómina ya se ha ingresado a las 00:00, así que la próxima es la del mes siguiente.
+    const yaCobrada = state.nominas.some((n) => n.mes === mes) || fechaDeCobro(state.salario, mes) < hoyISO();
+    const proximoMes = yaCobrada ? mesSiguiente(mes) : mes;
     const fecha = fechaDeCobro(state.salario, proximoMes);
     contenedor.append(
       tarjeta([
