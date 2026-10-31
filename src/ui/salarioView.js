@@ -26,7 +26,7 @@ export function renderSalario(contenedor, state) {
   contenedor.append(
     tarjeta([
       el('h2', { text: 'Configuración' }),
-      el('p', { text: `Bruto anual: ${euros(state.salario.brutoAnual)} · ${state.salario.horasSemana}h/semana · ${state.salario.numeroPagas} pagas · cobro el día ${state.salario.diaCobro}` }),
+      el('p', { text: `Bruto anual: ${euros(state.salario.brutoAnual)} · ${state.salario.horasSemana}h/semana · ${state.salario.numeroPagas} pagas · cobro el día ${state.salario.diaCobro}${state.salario.retencionIrpfReal > 0 ? ` · retención IRPF ${porcentaje(state.salario.retencionIrpfReal)}` : ''}` }),
       el('div', { class: 'action-row' }, [
         el('button', { type: 'button', class: 'btn-secondary', text: 'Editar configuración', onClick: () => abrirFormularioConfiguracion(state) }),
         el('button', { type: 'button', class: 'btn-secondary', text: 'Tablas fiscales', onClick: () => abrirAjustesFiscales(state) }),
@@ -40,9 +40,9 @@ export function renderSalario(contenedor, state) {
       el('ul', { class: 'breakdown-list' }, [
         filaDesglose('Bruto del mes', euros(nomina.brutoMes)),
         filaDesglose('Retribución flexible (exenta)', `-${euros(nomina.retribucionFlexible)}`),
-        filaDesglose('Base de cotización', euros(nomina.baseCotizacion)),
+        filaDesglose('Base de cotización SS (con prorrata de pagas extra)', euros(nomina.baseCotizacion)),
         filaDesglose('Seguridad Social', `-${euros(nomina.seguridadSocial)}`),
-        filaDesglose(`IRPF (retención ${porcentaje(nomina.tipoRetencion)})`, `-${euros(nomina.irpf)}`),
+        filaDesglose(`IRPF (retención ${porcentaje(nomina.tipoRetencion)}${nomina.retencionReal ? ', la de tu nómina' : ', estimada'})`, `-${euros(nomina.irpf)}`),
         filaDesglose('Neto mensual', euros(nomina.neto), true),
       ]),
       el('p', { class: 'hint-text', text: `Cobro estimado el ${fechaDeCobro(state.salario, mes)}.` }),
@@ -237,6 +237,7 @@ function abrirFormularioConfiguracion(state) {
   const numeroPagas = el('select', {}, [el('option', { value: '12', text: '12 pagas' }), el('option', { value: '14', text: '14 pagas' })]);
   numeroPagas.value = String(s.numeroPagas || 12);
   const diaCobro = el('input', { type: 'number', min: '1', max: '31', value: s.diaCobro ?? 28 });
+  const retencionIrpfReal = el('input', { type: 'number', step: '0.01', min: '0', max: '60', placeholder: 'Vacío = estimarla', value: s.retencionIrpfReal ?? '' });
   const contrato = el('select', {}, [el('option', { value: 'indefinido', text: 'Indefinido' }), el('option', { value: 'temporal', text: 'Temporal' })]);
   contrato.value = s.contrato || 'indefinido';
   const activoDesde = el('input', { type: 'month', value: s.activoDesde || mesActual() });
@@ -268,6 +269,7 @@ function abrirFormularioConfiguracion(state) {
           diaCobro: parseInt(diaCobro.value, 10) || 28,
           ajusteDiaNoHabil: 'anterior',
           contrato: contrato.value,
+          retencionIrpfReal: parseFloat(retencionIrpfReal.value) > 0 ? parseFloat(retencionIrpfReal.value) : null,
           activoDesde: activoDesde.value,
           retribucionFlexible: st.salario?.retribucionFlexible || [],
           cuentaRetribucionFlexible: st.salario?.cuentaRetribucionFlexible || null,
@@ -289,8 +291,11 @@ function abrirFormularioConfiguracion(state) {
     el('label', { text: 'Jornada completa (h/semana)' }), jornadaCompletaHoras,
     el('label', { text: 'Tus horas/semana' }), horasSemana,
     el('label', { text: 'Número de pagas' }), numeroPagas,
+    el('p', { class: 'hint-text', text: '14 pagas = 12 mensuales + 2 extras (junio y diciembre) cobradas aparte. La Seguridad Social cotiza siempre sobre el bruto anual ÷ 12.' }),
     el('label', { text: 'Día de cobro' }), diaCobro,
     el('label', { text: 'Tipo de contrato' }), contrato,
+    el('label', { text: 'Retención IRPF de tu nómina (%) — opcional' }), retencionIrpfReal,
+    el('p', { class: 'hint-text', text: 'Es el "% retención IRPF" que aparece en tu nómina. Si lo rellenas, la app lo usa en vez de estimarlo y el neto se acerca más al real.' }),
     el('label', { text: 'Nómina activa desde' }), activoDesde,
     el('label', { text: 'Edad' }), edad,
     el('label', { text: 'Número de hijos' }), numHijos,

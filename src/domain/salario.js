@@ -23,16 +23,25 @@ export function calcularNomina(state, config, mes) {
 
   const { totalExentoMensual, avisos } = validarRetribucionFlexible(state, config.retribucionFlexible || [], brutoAnual);
   const exentoMes = Math.min(totalExentoMensual, brutoMes);
-  const baseCotizacionMes = Math.max(0, brutoMes - exentoMes);
 
+  // Seguridad Social: la base de cotización incluye siempre la parte proporcional de las
+  // pagas extra (bruto anual / 12), también en los meses sin paga extra o con ella.
+  const baseCotizacionMes = Math.max(0, brutoAnual / 12 - exentoMes);
   const cotizacion = calcularCotizacionSS(state, baseCotizacionMes, config.contrato);
+
+  // IRPF: la retención se aplica sobre lo que realmente se paga ese mes.
+  const baseIrpfMes = Math.max(0, brutoMes - exentoMes);
 
   const brutoAnualCotizable = Math.max(0, brutoAnual - totalExentoMensual * 12);
   const cotizacionAnualEstim = calcularCotizacionSS(state, brutoAnualCotizable / 12, config.contrato).cuota * 12;
 
   const { base: baseImponibleAnual, minimo } = calcularBaseImponible(state, brutoAnualCotizable, cotizacionAnualEstim, config.situacion || {});
-  const tipoRetencion = calcularTipoRetencion(state, baseImponibleAnual, brutoAnualCotizable);
-  const irpfMes = Math.round(baseCotizacionMes * (tipoRetencion / 100) * 100) / 100;
+  const tipoEstimado = calcularTipoRetencion(state, baseImponibleAnual, brutoAnualCotizable);
+  // Si el usuario indica la retención que le aplica su empresa (aparece en la nómina), manda esa.
+  const retencionReal = Number(config.retencionIrpfReal);
+  const usaRetencionReal = retencionReal > 0 && retencionReal < 100;
+  const tipoRetencion = usaRetencionReal ? retencionReal : tipoEstimado;
+  const irpfMes = Math.round(baseIrpfMes * (tipoRetencion / 100) * 100) / 100;
 
   const neto = Math.round((brutoMes - cotizacion.cuota - irpfMes) * 100) / 100;
 
@@ -48,6 +57,7 @@ export function calcularNomina(state, config, mes) {
     seguridadSocial: cotizacion.cuota,
     irpf: irpfMes,
     tipoRetencion: Math.round(tipoRetencion * 100) / 100,
+    retencionReal: usaRetencionReal,
     neto,
     minimoPersonalYFamiliar: Math.round(minimo * 100) / 100,
     estimacionAnualMadrid: {

@@ -181,9 +181,14 @@ Se mantienen de la v1, pero ahora indican **de qué cuenta y división salen**:
   "divisionId": null,
   "diaCobro": 3,
   "activa": true,
-  "desde": "2026-01"
+  "tipo": "gasto",              // "gasto" (por defecto) | "ingreso" (p. ej. carga mensual de una tarjeta restaurante)
+  "fechaInicio": "2026-01-01",  // primer cobro posible (inclusive)
+  "fechaFin": null,             // último cobro posible (inclusive); null = no caduca
+  "desde": "2026-01"            // mes de fechaInicio; se mantiene por compatibilidad
 }
 ```
+
+Los movimientos se generan al abrir la app y al guardar la suscripción, solo para fechas ya llegadas y dentro de `fechaInicio`–`fechaFin`.
 
 ### 3.7. Configuración del salario
 
@@ -192,7 +197,8 @@ Se mantienen de la v1, pero ahora indican **de qué cuenta y división salen**:
   "brutoAnual": 34000,
   "jornadaCompletaHoras": 40,
   "horasSemana": 40,
-  "numeroPagas": 12,            // 12 o 14
+  "numeroPagas": 12,            // 12 o 14 (la Seguridad Social cotiza siempre sobre bruto anual / 12)
+  "retencionIrpfReal": null,    // % de retención de la nómina real; null = estimarla
   "mesesPagaExtra": [6, 12],    // solo si son 14
   "diaCobro": 28,
   "ajusteDiaNoHabil": "anterior",

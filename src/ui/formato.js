@@ -4,7 +4,7 @@ export function euros(valor) {
 }
 
 export function porcentaje(valor) {
-  return `${Number(valor).toFixed(1)} %`;
+  return `${Number(valor).toFixed(2).replace(".", ",")} %`;
 }
 
 export function fechaLarga(fechaISO) {
