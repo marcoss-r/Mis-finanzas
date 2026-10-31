@@ -78,6 +78,14 @@ export function abrirAjustesFiscales(state) {
       ['baseCotizacionMaxima', 'Base máxima'],
     ], tablas, campos),
 
+    seccionNumeros('IRPF — parámetros', [
+      ['gastosDeducibles', 'Otros gastos deducibles (€/año)'],
+      ['limiteExcluyente', 'Límite sin retención (€/año)'],
+      ['topeCuotaSobreExceso', 'Tope de retención sobre el exceso (%)'],
+      ['retencionMinimaTemporal', 'Retención mínima contrato temporal (%)'],
+      ['reduccionTrabajo.maxima', 'Reducción rendimientos del trabajo máxima (€)'],
+    ], tablas, campos),
+
     seccionEscala('Escala de retenciones (nómina mensual)', 'escalaRetenciones', tablas.escalaRetenciones, escalas),
     seccionEscala('Escala estatal (cuota anual real)', 'escalaEstatal', tablas.escalaEstatal, escalas),
     seccionEscala('Escala autonómica — Comunidad de Madrid', 'escalaMadrid', tablas.escalaMadrid, escalas),

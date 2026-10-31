@@ -1,11 +1,11 @@
-import { mesesEntre } from '../util/fechas.js';
+import { mesesEntre, fechaISOLocal } from '../util/fechas.js';
 import { saldoCuenta } from './cuentas.js';
 import { crearMovimiento } from './movimientos.js';
 
 // Abona `saldo × TAE/12` el último día de cada mes vencido, por cuenta de ahorro.
 // Idempotente: no vuelve a abonar un mes que ya tiene su movimiento de interés.
 export function abonarInteresesPendientes(state, hastaFecha = new Date()) {
-  const hastaMes = hastaFecha.toISOString().slice(0, 7);
+  const hastaMes = fechaISOLocal(hastaFecha).slice(0, 7);
   const generados = [];
   state.cuentas.filter((c) => c.tipo === 'ahorro' && c.tae > 0 && !c.archivada).forEach((cuenta) => {
     const desde = cuenta.creada.slice(0, 7);

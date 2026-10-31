@@ -3,8 +3,14 @@ export const NOMBRES_MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ];
 
+// Fecha YYYY-MM-DD en hora local. toISOString() usa UTC y en España (UTC+1/+2) daría el
+// día anterior entre medianoche y la 1-2 de la madrugada.
+export function fechaISOLocal(fecha) {
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+}
+
 export function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
+  return fechaISOLocal(new Date());
 }
 
 export function mesActual() {
@@ -45,9 +51,9 @@ export function formatearMes(mesKey) {
 // Festivos nacionales + de la Comunidad/ciudad de Madrid. Cambian cada año por decreto;
 // esta lista es una estimación y conviene revisarla en enero (ver planificación, sección 9).
 const FESTIVOS_MADRID = {
-  2025: ['2025-01-01', '2025-01-06', '2025-04-17', '2025-04-18', '2025-05-01', '2025-05-02', '2025-05-15', '2025-08-15', '2025-11-01', '2025-11-10', '2025-12-06', '2025-12-08', '2025-12-09', '2025-12-25'],
-  2026: ['2026-01-01', '2026-01-06', '2026-04-02', '2026-04-03', '2026-05-01', '2026-05-02', '2026-05-15', '2026-08-15', '2026-11-02', '2026-11-09', '2026-12-07', '2026-12-08', '2026-12-25'],
-  2027: ['2027-01-01', '2027-01-06', '2027-03-25', '2027-03-26', '2027-05-01', '2027-05-03', '2027-05-15', '2027-08-15', '2027-11-01', '2027-11-08', '2027-12-06', '2027-12-08', '2027-12-25'],
+  2025: ['2025-01-01', '2025-01-06', '2025-04-17', '2025-04-18', '2025-05-01', '2025-05-02', '2025-05-15', '2025-07-25', '2025-08-15', '2025-11-01', '2025-11-10', '2025-12-06', '2025-12-08', '2025-12-09', '2025-12-25'],
+  2026: ['2026-01-01', '2026-01-06', '2026-04-02', '2026-04-03', '2026-05-01', '2026-05-02', '2026-05-15', '2026-08-15', '2026-10-12', '2026-11-02', '2026-11-09', '2026-12-07', '2026-12-08', '2026-12-25'],
+  2027: ['2027-01-01', '2027-01-06', '2027-03-25', '2027-03-26', '2027-05-01', '2027-05-03', '2027-05-15', '2027-08-15', '2027-10-12', '2027-11-01', '2027-11-08', '2027-12-06', '2027-12-08', '2027-12-25'],
 };
 
 export function esFestivoMadrid(fechaISO) {
@@ -61,11 +67,11 @@ export function esFinDeSemana(fechaISO) {
 }
 
 export function diaHabilAnterior(fechaISO) {
-  let fecha = new Date(`${fechaISO}T00:00:00`);
+  const fecha = new Date(`${fechaISO}T00:00:00`);
   let iso = fechaISO;
   while (esFinDeSemana(iso) || esFestivoMadrid(iso)) {
     fecha.setDate(fecha.getDate() - 1);
-    iso = fecha.toISOString().slice(0, 10);
+    iso = fechaISOLocal(fecha);
   }
   return iso;
 }
@@ -83,4 +89,17 @@ export function edadDesdeFecha(fechaISO) {
   const m = hoy.getMonth() - nacimiento.getMonth();
   if (m < 0 || (m === 0 && hoy.getDate() < nacimiento.getDate())) edad -= 1;
   return edad;
+}
+
+// Días naturales entre dos fechas ISO, ambas incluidas.
+export function diasNaturalesEntre(desdeISO, hastaISO) {
+  const desde = new Date(`${desdeISO}T00:00:00`);
+  const hasta = new Date(`${hastaISO}T00:00:00`);
+  return Math.round((hasta - desde) / 86400000) + 1;
+}
+
+export function sumarMeses(mesKey, cantidad) {
+  const [anio, mes] = mesKey.split('-').map(Number);
+  const fecha = new Date(anio, mes - 1 + cantidad, 1);
+  return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
 }

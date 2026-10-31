@@ -197,8 +197,7 @@ Los movimientos se generan al abrir la app y al guardar la suscripción, solo pa
   "brutoAnual": 34000,
   "jornadaCompletaHoras": 40,
   "horasSemana": 40,
-  "numeroPagas": 12,            // 12 o 14 (la Seguridad Social cotiza siempre sobre bruto anual / 12)
-  "retencionIrpfReal": null,    // % de retención de la nómina real; null = estimarla
+  "numeroPagas": 12,            // 12 o 14
   "mesesPagaExtra": [6, 12],    // solo si son 14
   "diaCobro": 28,
   "ajusteDiaNoHabil": "anterior",

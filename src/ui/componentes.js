@@ -58,8 +58,16 @@ export function abrirModal(titulo, contenido) {
   document.body.append(overlay);
   overlayActual = overlay;
 
-  const primerCampo = modal.querySelector('input, select, textarea, button:not(.modal-close)');
-  (primerCampo || modal.querySelector('.modal-close')).focus();
+  // En el móvil, enfocar un campo saca el teclado nada más abrir el modal y, al cerrarlo, iOS
+  // deja descolocada la barra de pestañas fija. Allí se enfoca el propio diálogo.
+  const conRaton = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const primerCampo = conRaton && modal.querySelector('input, select, textarea, button:not(.modal-close)');
+  if (primerCampo) {
+    primerCampo.focus();
+  } else {
+    modal.setAttribute('tabindex', '-1');
+    modal.focus({ preventScroll: true });
+  }
 
   return overlay;
 }

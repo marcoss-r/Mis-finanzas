@@ -2,8 +2,9 @@ import { el, tarjeta, barra } from './componentes.js';
 import { euros } from './formato.js';
 import { update } from '../store/state.js';
 import { movimientosDelMes } from '../domain/movimientos.js';
+import { afectaAlSaldo } from '../domain/cuentas.js';
 import { presupuestosVigentes, gastadoEnCategoria } from '../domain/presupuestos.js';
-import { generarMeses, mesActual, mesesEntre } from '../util/fechas.js';
+import { generarMeses, mesActual, mesesEntre, formatearMes, ultimoDiaDelMes } from '../util/fechas.js';
 
 let mesSeleccionado = mesActual();
 let grafico = null;
@@ -81,8 +82,8 @@ export function renderEstadisticas(contenedor, state) {
     tarjeta([
       el('h2', { text: 'Evolución del patrimonio' }),
       el('div', {}, ultimosMeses(mesSeleccionado, 6).map((mes) => el('div', { class: 'breakdown-row' }, [
-        el('span', { text: mes }),
-        el('span', { text: euros(patrimonioHasta(state, `${mes}-31`)) }),
+        el('span', { text: formatearMes(mes) }),
+        el('span', { text: euros(patrimonioHasta(state, `${mes}-${ultimoDiaDelMes(mes)}`)) }),
       ]))),
     ]),
   );
@@ -127,10 +128,10 @@ function patrimonioHasta(state, fechaISO) {
   state.cuentas.forEach((c) => {
     let saldo = c.saldoInicial;
     state.movimientos.forEach((m) => {
-      if (m.cuentaId === c.id && m.fecha <= fechaISO) saldo += m.tipo === 'ingreso' ? m.importe : -m.importe;
+      if (m.cuentaId === c.id && m.fecha <= fechaISO && afectaAlSaldo(c, m.fecha)) saldo += m.tipo === 'ingreso' ? m.importe : -m.importe;
     });
     state.traspasos.forEach((t) => {
-      if (t.fecha > fechaISO) return;
+      if (t.fecha > fechaISO || !afectaAlSaldo(c, t.fecha)) return;
       if (t.cuentaDestino === c.id) saldo += t.importe;
       if (t.cuentaOrigen === c.id) saldo -= t.importe;
     });
@@ -152,7 +153,7 @@ function pintarGrafico(datos) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#ffffff' } },
+        legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 12, padding: 10 } },
         tooltip: {
           callbacks: {
             label: (ctx) => {

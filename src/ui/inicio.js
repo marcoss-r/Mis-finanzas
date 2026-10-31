@@ -4,7 +4,7 @@ import { cuentasActivas, saldoCuenta, patrimonioTotal } from '../domain/cuentas.
 import { saldoDivision, ahorroMensualNecesario } from '../domain/divisiones.js';
 import { presupuestosVigentes, gastadoEnCategoria } from '../domain/presupuestos.js';
 import { fechaDeCobro } from '../domain/salario.js';
-import { mesActual, formatearMes } from '../util/fechas.js';
+import { mesActual, formatearMes, hoyISO } from '../util/fechas.js';
 import { getState } from '../store/state.js';
 import { exportarBackup, importarBackup } from '../store/backup.js';
 
@@ -81,7 +81,9 @@ export function renderInicio(contenedor, state) {
   }
 
   if (state.salario) {
-    const proximoMes = fechaDeCobro(state.salario, mes) >= new Date().toISOString().slice(0, 10) ? mes : mesSiguiente(mes);
+    // El día de cobro la nómina ya se ha ingresado a las 00:00, así que la próxima es la del mes siguiente.
+    const yaCobrada = state.nominas.some((n) => n.mes === mes) || fechaDeCobro(state.salario, mes) < hoyISO();
+    const proximoMes = yaCobrada ? mesSiguiente(mes) : mes;
     const fecha = fechaDeCobro(state.salario, proximoMes);
     contenedor.append(
       tarjeta([

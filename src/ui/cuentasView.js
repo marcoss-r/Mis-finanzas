@@ -111,6 +111,7 @@ function abrirFormularioCuenta(state, cuenta) {
   ]);
   tipo.value = cuenta?.tipo || 'corriente';
   const saldoInicial = el('input', { type: 'number', step: '0.01', value: cuenta?.saldoInicial ?? '0' });
+  const fechaSaldoInicial = el('input', { type: 'date', value: cuenta?.fechaSaldoInicial || '' });
   const tae = el('input', { type: 'number', step: '0.01', value: cuenta?.tae ?? '0' });
   const grupoTae = el('div', { class: 'form-group' }, [el('label', { text: 'TAE (%)' }), tae]);
   const color = el('input', { type: 'color', value: cuenta?.color || '#3987e5' });
@@ -124,7 +125,7 @@ function abrirFormularioCuenta(state, cuenta) {
   const form = el('form', {
     onSubmit: (e) => {
       e.preventDefault();
-      const datos = { nombre: nombre.value.trim(), tipo: tipo.value, saldoInicial: parseFloat(saldoInicial.value) || 0, tae: parseFloat(tae.value) || 0, color: color.value };
+      const datos = { nombre: nombre.value.trim(), tipo: tipo.value, saldoInicial: parseFloat(saldoInicial.value) || 0, fechaSaldoInicial: fechaSaldoInicial.value || null, tae: parseFloat(tae.value) || 0, color: color.value };
       if (!datos.nombre) return;
       update((s) => {
         if (esEdicion) editarCuenta(s, cuenta.id, datos);
@@ -136,6 +137,8 @@ function abrirFormularioCuenta(state, cuenta) {
     el('label', { text: 'Nombre' }), nombre,
     el('label', { text: 'Tipo' }), tipo,
     el('label', { text: esEdicion ? 'Saldo inicial' : 'Saldo inicial (€)' }), saldoInicial,
+    el('label', { text: 'Saldo a fecha de (opcional)' }), fechaSaldoInicial,
+    el('p', { class: 'hint-text', text: 'Saldo real al final de ese día. Los movimientos de ese día o anteriores ya están incluidos y no se vuelven a sumar.' }),
     grupoTae,
     el('label', { text: 'Color' }), color,
     el('button', { type: 'submit', class: 'btn-primary', text: esEdicion ? 'Guardar cambios' : 'Crear cuenta' }),

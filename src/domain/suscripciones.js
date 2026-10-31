@@ -1,5 +1,5 @@
 import { generarId } from '../util/id.js';
-import { mesesEntre, hoyISO } from '../util/fechas.js';
+import { mesesEntre, hoyISO, fechaISOLocal } from '../util/fechas.js';
 import { crearMovimiento } from './movimientos.js';
 
 // Una suscripción es un movimiento recurrente mensual. `tipo` puede ser 'gasto' (por
@@ -56,18 +56,12 @@ export function suscripcionVigenteEnMes(sus, mes) {
   return true;
 }
 
-function isoLocal(fecha) {
-  const m = String(fecha.getMonth() + 1).padStart(2, '0');
-  const d = String(fecha.getDate()).padStart(2, '0');
-  return `${fecha.getFullYear()}-${m}-${d}`;
-}
-
 // Materializa como movimientos reales los cobros (o ingresos) de suscripciones activas que
 // ya deberían haberse producido, para que el saldo de la cuenta los refleje. Respeta la
 // fecha de inicio y de fin, y no adelanta cobros cuyo día aún no ha llegado. Es idempotente:
 // comprueba si ya existe el movimiento de ese mes antes de crearlo.
 export function generarCargosPendientes(state, hastaFecha = new Date()) {
-  const hastaISO = isoLocal(hastaFecha);
+  const hastaISO = fechaISOLocal(hastaFecha);
   const hastaMes = hastaISO.slice(0, 7);
   const generados = [];
   state.suscripciones.filter((s) => s.activa).forEach((sus) => {

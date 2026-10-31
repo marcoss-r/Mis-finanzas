@@ -2,7 +2,8 @@ import { getState, subscribe, update } from './store/state.js';
 import { exportarDatosV1, borrarDatosV1 } from './store/storage.js';
 import { generarCargosPendientes } from './domain/suscripciones.js';
 import { abonarInteresesPendientes } from './domain/interes.js';
-import { generarNominasPendientes } from './domain/salario.js';
+import { generarNominasPendientes, recalcularNominas } from './domain/salario.js';
+import { migrarTablasFiscales } from './domain/fiscal/tablas.js';
 import { el, abrirModal, cerrarModal } from './ui/componentes.js';
 import { renderInicio } from './ui/inicio.js';
 import { renderCuentas } from './ui/cuentasView.js';
@@ -75,7 +76,17 @@ botones.forEach((btn) => {
 
 subscribe(render);
 
+// Al cerrar el teclado, iOS a veces deja la página desplazada y la barra de pestañas fija
+// fuera de su sitio hasta que haces scroll. Recolocar el scroll la devuelve abajo.
+document.addEventListener('focusout', () => {
+  setTimeout(() => {
+    if (!document.activeElement?.matches('input, select, textarea')) window.scrollTo(window.scrollX, window.scrollY);
+  }, 100);
+});
+
 update((state) => {
+  migrarTablasFiscales(state);
+  recalcularNominas(state);
   generarCargosPendientes(state);
   abonarInteresesPendientes(state);
   generarNominasPendientes(state);
